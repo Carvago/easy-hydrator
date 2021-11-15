@@ -14,6 +14,7 @@ use Symplify\EasyHydrator\Tests\Fixture\Person;
 use Symplify\EasyHydrator\Tests\Fixture\PersonsCollection;
 use Symplify\EasyHydrator\Tests\Fixture\PersonWithAge;
 use Symplify\EasyHydrator\Tests\Fixture\TimeEvent;
+use Symplify\EasyHydrator\Tests\Fixture\UnionPerson;
 use Symplify\EasyHydrator\Tests\HttpKernel\EasyHydratorTestKernel;
 use Symplify\PackageBuilder\Testing\AbstractKernelTestCase;
 
@@ -254,6 +255,35 @@ final class ArrayToValueObjectHydratorTest extends AbstractKernelTestCase
             $this->assertArrayHasKey('HOMER', $indexedPersons);
             $this->assertContainsOnlyInstancesOf(Person::class, $indexedPersons);
         }
+    }
+
+    public function testUnion(): void
+    {
+        $data = [
+            'person' => [
+                'name' => 'John Doe',
+            ],
+        ];
+
+        $person = $this->arrayToValueObjectHydrator->hydrateArray($data, UnionPerson::class);
+
+        $this->assertInstanceOf(UnionPerson::class, $person);
+        $this->assertInstanceOf(Person::class, $person->getPerson());
+        $this->assertSame('John Doe', $person->getPerson()->getName());
+    }
+
+    public function testKeepAlreadySetValueFromUnion(): void
+    {
+        $data = [
+            'person' => new PersonWithAge('John Doe', 99),
+        ];
+
+        $person = $this->arrayToValueObjectHydrator->hydrateArray($data, UnionPerson::class);
+
+        $this->assertInstanceOf(UnionPerson::class, $person);
+        $this->assertInstanceOf(PersonWithAge::class, $person->getPerson());
+        $this->assertSame('John Doe', $person->getPerson()->getName());
+        $this->assertSame(99, $person->getPerson()->getAge());
     }
 
     /**

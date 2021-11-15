@@ -11,8 +11,9 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use ReflectionClass;
+use ReflectionNamedType;
 use ReflectionParameter;
-use ReflectionType;
+use ReflectionUnionType;
 use Symplify\SimplePhpDocParser\SimplePhpDocParser;
 use Symplify\SimplePhpDocParser\ValueObject\Ast\PhpDoc\SimplePhpDocNode;
 
@@ -152,12 +153,11 @@ final class ParameterTypeRecognizer
 
     private function getTypeFromTypeHint(ReflectionParameter $reflectionParameter): ?string
     {
-        $parameterReflectionType = $reflectionParameter->getType();
-        if (! $parameterReflectionType instanceof ReflectionType) {
-            return null;
-        }
-
-        return $parameterReflectionType->getName();
+        return match (true) {
+            $reflectionParameter->getType() instanceof ReflectionUnionType => $reflectionParameter->getType()->getTypes()[0]->getName(),
+            $reflectionParameter->getType() instanceof ReflectionNamedType => $reflectionParameter->getType()->getName(),
+            default => null,
+        };
     }
 
     private function findFirstNonNullNodeType(UnionTypeNode $unionTypeNode): ?TypeNode

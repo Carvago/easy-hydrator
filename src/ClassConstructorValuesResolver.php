@@ -6,6 +6,8 @@ namespace Symplify\EasyHydrator;
 
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionUnionType;
 use Symplify\EasyHydrator\Exception\MissingConstructorException;
 
 final class ClassConstructorValuesResolver
@@ -24,12 +26,30 @@ final class ClassConstructorValuesResolver
         $arguments = [];
 
         $constructorReflectionMethod = $this->getConstructorMethodReflection($class);
-        $parameterReflections = $constructorReflectionMethod->getParameters();
+        $reflectionParameters = $constructorReflectionMethod->getParameters();
 
-        foreach ($parameterReflections as $parameterReflection) {
-            $value = $this->parameterValueResolver->getValue($parameterReflection, $data);
+        foreach ($reflectionParameters as $reflectionParameter) {
+            $value = $this->parameterValueResolver->getValue($reflectionParameter, $data);
 
-            $arguments[] = $this->typeCastersCollector->retype($value, $parameterReflection, $this);
+            // Union support
+            $supportedTypeNames = match (true) {
+                $reflectionParameter->getType() instanceof ReflectionUnionType => array_map(
+                    callback: fn (ReflectionNamedType $type) => $type->getName(),
+                    array: $reflectionParameter->getType()->getTypes(),
+                ),
+                $reflectionParameter->getType() instanceof ReflectionNamedType => $reflectionParameter->getType()->allowsNull() ?
+                    [$reflectionParameter->getType()->getName(), 'null'] :
+                    [$reflectionParameter->getType()->getName()],
+                default => [],
+            };
+            $typeOrClass = is_object($value) ? get_class($value) : strtolower(gettype($value)); // gettype returns 'string', 'object', but 'NULL'
+
+            // Passing value if its already of one of declared types (excluding array)
+            if ('array' !== $typeOrClass && in_array($typeOrClass, $supportedTypeNames)) {
+                $arguments[] = $value;
+            } else {
+                $arguments[] = $this->typeCastersCollector->retype($value, $reflectionParameter, $this);
+            }
         }
 
         return $arguments;

@@ -33,12 +33,16 @@ final class ParameterTypeRecognizerTest extends AbstractKernelTestCase
 
         for ($i = 0; $i < 6; ++$i) {
             $actual = $this->parameterTypeRecognizer->getTypeFromDocBlock($reflectionParameters[$i]);
-            $this->assertSame('string', $actual);
+            $this->assertSame('string', $actual, (string) $i);
         }
 
         for ($i = 6; $i < 12; ++$i) {
             $actual = $this->parameterTypeRecognizer->getTypeFromDocBlock($reflectionParameters[$i]);
-            $this->assertSame(Person::class, $actual);
+            $this->assertSame(Person::class, $actual, (string) $i);
         }
+
+        // 'string' declared before Person, but ReflectionUnionType->getTypes() moves classed to the beginning
+        $this->assertSame(Person::class, $this->parameterTypeRecognizer->getType($reflectionParameters[12]));
+        $this->assertSame(Person::class, $this->parameterTypeRecognizer->getType($reflectionParameters[13]));
     }
 }
