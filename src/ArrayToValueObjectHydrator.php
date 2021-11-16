@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator;
 
-use Symfony\Contracts\Cache\CacheInterface;
-
 /**
  * @see \Symplify\EasyHydrator\Tests\ArrayToValueObjectHydratorTest
  */
 final class ArrayToValueObjectHydrator
 {
     public function __construct(
-        private CacheInterface $cache,
         private ClassConstructorValuesResolver $classConstructorValuesResolver
     ) {
     }
@@ -25,14 +22,9 @@ final class ArrayToValueObjectHydrator
      */
     public function hydrateArray(array $data, string $class): object
     {
-        $serializedData = serialize($data);
-        $arrayHash = md5($serializedData . $class);
+        $resolveClassConstructorValues = $this->classConstructorValuesResolver->resolve($class, $data);
 
-        return $this->cache->get($arrayHash, function () use ($class, $data): object {
-            $resolveClassConstructorValues = $this->classConstructorValuesResolver->resolve($class, $data);
-
-            return new $class(...$resolveClassConstructorValues);
-        });
+        return new $class(...$resolveClassConstructorValues);
     }
 
     /**
