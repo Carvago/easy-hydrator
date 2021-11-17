@@ -43,6 +43,13 @@ final class ClassConstructorValuesResolver
                 default => [],
             };
             $typeOrClass = is_object($value) ? get_class($value) : strtolower(gettype($value)); // gettype returns 'string', 'object', but 'NULL'
+            $typeOrClass = match($typeOrClass) {
+                'boolean' => 'bool',
+                'integer' => 'int',
+                'double' => 'float',
+                'NULL' => 'null',
+                default => $typeOrClass,
+            };
 
             // Passing value if its already of one of declared types (excluding array)
             if ('array' !== $typeOrClass && in_array($typeOrClass, $supportedTypeNames)) {
