@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator;
 
+use ReflectionParameter;
+
 /**
  * @see \Symplify\EasyHydrator\Tests\ArrayToValueObjectHydratorTest
  */
 final class ArrayToValueObjectHydrator
 {
     public function __construct(
-        private ClassConstructorValuesResolver $classConstructorValuesResolver
+        private TypeCastersCollector $typeCastersCollector,
     ) {
     }
 
@@ -22,9 +24,16 @@ final class ArrayToValueObjectHydrator
      */
     public function hydrateArray(array $data, string $class): object
     {
-        $resolveClassConstructorValues = $this->classConstructorValuesResolver->resolve($class, $data);
+        // Additional check to secure eval call
+        if (!class_exists($class)) {
+            throw new \RuntimeException('Class not exist: ' . $class);
+        }
 
-        return new $class(...$resolveClassConstructorValues);
+        // A workaround to create an instance of ReflectionParameter to init retype process
+        $callback = eval("return fn ($class \$value) => null;");
+        $reflectionParameter = new ReflectionParameter($callback, 'value');
+
+        return $this->typeCastersCollector->retype($data, $reflectionParameter, $this->typeCastersCollector);
     }
 
     /**

@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator\TypeCaster;
 
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
-use Symplify\EasyHydrator\ClassConstructorValuesResolver;
+use ReflectionUnionType;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
+use Symplify\EasyHydrator\Exception\MissingConstructorException;
 use Symplify\EasyHydrator\ParameterTypeRecognizer;
+use Symplify\EasyHydrator\ParameterValueResolver;
+use Symplify\EasyHydrator\TypeCastersCollector;
 
 final class ObjectTypeCaster implements TypeCasterInterface
 {
     public function __construct(
-        private ParameterTypeRecognizer $parameterTypeRecognizer
+        private ParameterTypeRecognizer $parameterTypeRecognizer,
+        private ParameterValueResolver $parameterValueResolver,
     ) {
     }
 
@@ -27,14 +34,11 @@ final class ObjectTypeCaster implements TypeCasterInterface
         return class_exists($className);
     }
 
-    /**
-     * @return mixed|mixed[]
-     */
     public function retype(
-        $value,
+        mixed $value,
         ReflectionParameter $reflectionParameter,
-        ClassConstructorValuesResolver $classConstructorValuesResolver
-    ) {
+        TypeCastersCollector $typeCastersCollector,
+    ): mixed {
         $className = $this->getClassName($reflectionParameter);
 
         if ($className === null) {
@@ -46,11 +50,11 @@ final class ObjectTypeCaster implements TypeCasterInterface
         }
 
         if (! $this->parameterTypeRecognizer->isArray($reflectionParameter)) {
-            return $this->createObject($className, $value, $classConstructorValuesResolver);
+            return $this->createObject($className, $value, $typeCastersCollector);
         }
 
         return array_map(
-            fn ($objectData) => $this->createObject($className, $objectData, $classConstructorValuesResolver),
+            fn ($objectData) => $this->createObject($className, $objectData, $typeCastersCollector),
             $value
         );
     }
@@ -60,22 +64,36 @@ final class ObjectTypeCaster implements TypeCasterInterface
         return 5;
     }
 
-    /**
-     * @param mixed $data
-     * @return object|mixed
-     */
     private function createObject(
         string $className,
-        $data,
-        ClassConstructorValuesResolver $classConstructorValuesResolver
-    ) {
+        mixed $data,
+        TypeCastersCollector $typeCastersCollector,
+    ): mixed {
         if (is_a($data, $className)) {
             return $data;
         }
 
-        $constructorValues = $classConstructorValuesResolver->resolve($className, $data);
+        $arguments = [];
 
-        return new $className(...$constructorValues);
+        $constructorReflectionMethod = $this->getConstructorMethodReflection($className);
+        $reflectionParameters = $constructorReflectionMethod->getParameters();
+
+        foreach ($reflectionParameters as $reflectionParameter) {
+            $value = $this->parameterValueResolver->getValue($reflectionParameter, $data);
+
+            $parameterTypeNames = $this->getParameterTypeNames($reflectionParameter);
+            $valueTypeName = $this->getValueTypeName($value);
+
+            // Passing value if its already of one of declared types (excluding array)
+            if ('array' !== $valueTypeName && in_array($valueTypeName, $parameterTypeNames)) {
+                $arguments[] = $value;
+                continue;
+            }
+
+            $arguments[] = $typeCastersCollector->retype($value, $reflectionParameter, $typeCastersCollector);
+        }
+
+        return new $className(...$arguments);
     }
 
     private function getClassName(ReflectionParameter $reflectionParameter): ?string
@@ -85,5 +103,50 @@ final class ObjectTypeCaster implements TypeCasterInterface
         }
 
         return $this->parameterTypeRecognizer->getType($reflectionParameter);
+    }
+
+    private function getConstructorMethodReflection(string $class): ReflectionMethod
+    {
+        $reflectionClass = new ReflectionClass($class);
+
+        $constructorReflectionMethod = $reflectionClass->getConstructor();
+        if (! $constructorReflectionMethod instanceof ReflectionMethod) {
+            throw new MissingConstructorException(sprintf('Hydrated class "%s" is missing constructor.', $class));
+        }
+
+        return $constructorReflectionMethod;
+    }
+
+    private function getParameterTypeNames(ReflectionParameter $reflectionParameter): array
+    {
+        $parameterTypeNames = match (true) {
+            $reflectionParameter->getType() instanceof ReflectionUnionType => array_map(
+                callback: fn (ReflectionNamedType $type) => $type->getName(),
+                array: $reflectionParameter->getType()->getTypes(),
+            ),
+            $reflectionParameter->getType() instanceof ReflectionNamedType => $reflectionParameter->getType()->allowsNull() ?
+                [$reflectionParameter->getType()->getName(), 'null'] :
+                [$reflectionParameter->getType()->getName()],
+            default => [],
+        };
+
+        // Integers also could be passed as floats
+        if (in_array('float', $parameterTypeNames) && !in_array('int', $parameterTypeNames)) {
+            $parameterTypeNames[] = 'int';
+        }
+
+        return $parameterTypeNames;
+    }
+
+    private function getValueTypeName(mixed $value): string
+    {
+        $typeOrClass = is_object($value) ? get_class($value) : strtolower(gettype($value)); // gettype returns 'string', 'object', but 'NULL'
+        return match($typeOrClass) {
+            'boolean' => 'bool',
+            'integer' => 'int',
+            'double' => 'float',
+            'NULL' => 'null',
+            default => $typeOrClass,
+        };
     }
 }

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Symplify\EasyHydrator\TypeCaster;
 
 use ReflectionParameter;
-use Symplify\EasyHydrator\ClassConstructorValuesResolver;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
 use Symplify\EasyHydrator\ParameterTypeRecognizer;
+use Symplify\EasyHydrator\TypeCastersCollector;
 
 final class ArrayTypeCaster implements TypeCasterInterface
 {
@@ -24,9 +24,9 @@ final class ArrayTypeCaster implements TypeCasterInterface
     }
 
     public function retype(
-        $value,
+        mixed $value,
         ReflectionParameter $reflectionParameter,
-        ClassConstructorValuesResolver $classConstructorValuesResolver
+        TypeCastersCollector $typeCastersCollector,
     ): ?array {
         $type = $this->parameterTypeRecognizer->getTypeFromDocBlock($reflectionParameter);
         $arrayLevels = $this->parameterTypeRecognizer->getArrayLevels($reflectionParameter);
@@ -68,7 +68,7 @@ final class ArrayTypeCaster implements TypeCasterInterface
 
     public function getPriority(): int
     {
-        return 8;
+        return 0;
     }
 
     private function isAllowedNull($value, ReflectionParameter $reflectionParameter): bool

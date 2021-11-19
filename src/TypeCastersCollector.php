@@ -22,17 +22,14 @@ final class TypeCastersCollector
         $this->typeCasters = $this->sortCastersByPriority($typeCasters);
     }
 
-    /**
-     * @return mixed
-     */
     public function retype(
-        $value,
+        mixed $value,
         ReflectionParameter $reflectionParameter,
-        ClassConstructorValuesResolver $classConstructorValuesResolver
-    ) {
+        TypeCastersCollector $typeCastersCollector,
+    ): mixed {
         foreach ($this->typeCasters as $typeCaster) {
             if ($typeCaster->isSupported($reflectionParameter)) {
-                return $typeCaster->retype($value, $reflectionParameter, $classConstructorValuesResolver);
+                return $typeCaster->retype($value, $reflectionParameter, $typeCastersCollector);
             }
         }
 
@@ -40,6 +37,8 @@ final class TypeCastersCollector
     }
 
     /**
+     * Bigger number means more prioritized execution
+     *
      * @param TypeCasterInterface[] $typeCasters
      * @return TypeCasterInterface[]
      */
@@ -47,7 +46,8 @@ final class TypeCastersCollector
     {
         usort(
             $typeCasters,
-            static fn (TypeCasterInterface $firstTypeCaster, TypeCasterInterface $secondTypeCaster): int => $firstTypeCaster->getPriority() <=> $secondTypeCaster->getPriority()
+            // Sorting $b <=> $a to get casters with bigger value reveal first
+            static fn (TypeCasterInterface $a, TypeCasterInterface $b): int => $b->getPriority() <=> $a->getPriority()
         );
 
         return $typeCasters;

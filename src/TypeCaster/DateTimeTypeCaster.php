@@ -8,9 +8,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Nette\Utils\DateTime;
 use ReflectionParameter;
-use Symplify\EasyHydrator\ClassConstructorValuesResolver;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
 use Symplify\EasyHydrator\ParameterTypeRecognizer;
+use Symplify\EasyHydrator\TypeCastersCollector;
 
 final class DateTimeTypeCaster implements TypeCasterInterface
 {
@@ -24,14 +24,11 @@ final class DateTimeTypeCaster implements TypeCasterInterface
         return $this->parameterTypeRecognizer->isParameterOfClass($reflectionParameter, DateTimeInterface::class);
     }
 
-    /**
-     * @return DateTimeImmutable|DateTime|null
-     */
     public function retype(
-        $value,
+        mixed $value,
         ReflectionParameter $reflectionParameter,
-        ClassConstructorValuesResolver $classConstructorValuesResolver
-    ) {
+        TypeCastersCollector $typeCastersCollector,
+    ): DateTimeImmutable | DateTime | null {
         if ($value === null && $reflectionParameter->allowsNull()) {
             return null;
         }
@@ -48,6 +45,6 @@ final class DateTimeTypeCaster implements TypeCasterInterface
 
     public function getPriority(): int
     {
-        return 1;
+        return 10;
     }
 }
