@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator;
 
+use ReflectionClass;
 use ReflectionParameter;
+use RuntimeException;
+use Symplify\EasyHydrator\Exception\MissingConstructorException;
 
 /**
  * @see \Symplify\EasyHydrator\Tests\ArrayToValueObjectHydratorTest
@@ -26,7 +29,11 @@ final class ArrayToValueObjectHydrator
     {
         // Additional check to secure eval call
         if (!class_exists($class)) {
-            throw new \RuntimeException('Class not exist: ' . $class);
+            throw new RuntimeException('Class not exist: ' . $class);
+        }
+
+        if (null === (new ReflectionClass($class))->getConstructor()) {
+            throw new MissingConstructorException(sprintf('Hydrated class "%s" is missing constructor.', $class));
         }
 
         // A workaround to create an instance of ReflectionParameter to init retype process

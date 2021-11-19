@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Symplify\EasyHydrator\TypeCaster;
 
 use ReflectionClass;
-use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\Exception\MissingConstructorException;
 use Symplify\EasyHydrator\ParameterTypeRecognizer;
 use Symplify\EasyHydrator\ParameterValueResolver;
 use Symplify\EasyHydrator\TypeCastersCollector;
@@ -27,7 +25,7 @@ final class ObjectTypeCaster implements TypeCasterInterface
     {
         $className = $this->getClassName($reflectionParameter);
 
-        if ($className === null) {
+        if (null === $className || !class_exists($className) || null === (new \ReflectionClass($className))->getConstructor()) {
             return false;
         }
 
@@ -69,14 +67,13 @@ final class ObjectTypeCaster implements TypeCasterInterface
         mixed $data,
         TypeCastersCollector $typeCastersCollector,
     ): mixed {
-        if (is_a($data, $className)) {
+        if (is_a($data, $className) || !is_array($data)) {
             return $data;
         }
 
         $arguments = [];
 
-        $constructorReflectionMethod = $this->getConstructorMethodReflection($className);
-        $reflectionParameters = $constructorReflectionMethod->getParameters();
+        $reflectionParameters = (new ReflectionClass($className))->getConstructor()?->getParameters() ?? [];
 
         foreach ($reflectionParameters as $reflectionParameter) {
             $value = $this->parameterValueResolver->getValue($reflectionParameter, $data);
@@ -103,18 +100,6 @@ final class ObjectTypeCaster implements TypeCasterInterface
         }
 
         return $this->parameterTypeRecognizer->getType($reflectionParameter);
-    }
-
-    private function getConstructorMethodReflection(string $class): ReflectionMethod
-    {
-        $reflectionClass = new ReflectionClass($class);
-
-        $constructorReflectionMethod = $reflectionClass->getConstructor();
-        if (! $constructorReflectionMethod instanceof ReflectionMethod) {
-            throw new MissingConstructorException(sprintf('Hydrated class "%s" is missing constructor.', $class));
-        }
-
-        return $constructorReflectionMethod;
     }
 
     private function getParameterTypeNames(ReflectionParameter $reflectionParameter): array
