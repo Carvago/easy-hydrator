@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symplify\PackageBuilder\Strings\StringFormatConverter;
+use Symplify\SimplePhpDocParser\ValueObject\SimplePhpDocParserConfig;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
@@ -17,4 +18,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->exclude([__DIR__ . '/../src/EasyHydratorBundle.php']);
 
     $services->set(StringFormatConverter::class);
+
+    $containerConfigurator->import(SimplePhpDocParserConfig::FILE_PATH);
 };

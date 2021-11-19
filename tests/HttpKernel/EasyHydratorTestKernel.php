@@ -4,27 +4,17 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator\Tests\HttpKernel;
 
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
-use Symplify\EasyHydrator\EasyHydratorBundle;
-use Symplify\SimplePhpDocParser\Bundle\SimplePhpDocParserBundle;
-use Symplify\SymplifyKernel\Bundle\SymplifyKernelBundle;
+use Psr\Container\ContainerInterface;
 use Symplify\SymplifyKernel\HttpKernel\AbstractSymplifyKernel;
 
 final class EasyHydratorTestKernel extends AbstractSymplifyKernel
 {
-    public function registerContainerConfiguration(LoaderInterface $loader): void
-    {
-        $loader->load(__DIR__ . '/../config.php');
-
-        parent::registerContainerConfiguration($loader);
-    }
-
     /**
-     * @return BundleInterface[]
+     * @inheritdoc
      */
-    public function registerBundles(): iterable
+    public function createFromConfigs(array $configFiles): ContainerInterface
     {
-        return [new EasyHydratorBundle(), new SymplifyKernelBundle(), new SimplePhpDocParserBundle()];
+        $configFiles[] = __DIR__ . '/../../config/config.php';
+        return $this->create([], [], $configFiles);
     }
 }
