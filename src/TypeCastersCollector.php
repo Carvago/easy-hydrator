@@ -19,7 +19,7 @@ final class TypeCastersCollector
      */
     public function __construct(iterable $typeCasters)
     {
-        $this->typeCasters = $this->sortCastersByPriority(iterator_to_array($typeCasters));
+        $this->typeCasters = $this->sortCastersByPriority([...$typeCasters]);
     }
 
     public function retype(

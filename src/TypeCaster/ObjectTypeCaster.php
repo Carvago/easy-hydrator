@@ -25,11 +25,7 @@ final class ObjectTypeCaster implements TypeCasterInterface
     {
         $className = $this->getClassName($reflectionParameter);
 
-        if (null === $className || !class_exists($className) || null === (new \ReflectionClass($className))->getConstructor()) {
-            return false;
-        }
-
-        return class_exists($className);
+        return null !== $className && class_exists($className) && null !== (new ReflectionClass($className))->getConstructor();
     }
 
     public function retype(

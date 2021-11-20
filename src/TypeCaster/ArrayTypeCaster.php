@@ -18,9 +18,7 @@ final class ArrayTypeCaster implements TypeCasterInterface
 
     public function isSupported(ReflectionParameter $reflectionParameter): bool
     {
-        $type = $this->parameterTypeRecognizer->getType($reflectionParameter);
-
-        return $type === 'array';
+        return $this->parameterTypeRecognizer->isParameterOfType($reflectionParameter, 'array');
     }
 
     public function retype(

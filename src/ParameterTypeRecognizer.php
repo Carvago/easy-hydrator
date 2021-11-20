@@ -35,7 +35,11 @@ final class ParameterTypeRecognizer
 
         $paramTypeNode = $this->getParamTypeNode($reflectionParameter);
 
-        return $paramTypeNode instanceof ArrayTypeNode || $paramTypeNode instanceof GenericTypeNode;
+        if ($paramTypeNode instanceof UnionTypeNode) {
+            $paramTypeNode = $paramTypeNode->types[0];
+        }
+
+        return $paramTypeNode instanceof ArrayTypeNode || ($paramTypeNode instanceof GenericTypeNode && 'array' === $paramTypeNode->type->name);
     }
 
     public function getType(ReflectionParameter $reflectionParameter): ?string
@@ -46,6 +50,24 @@ final class ParameterTypeRecognizer
         }
 
         return $this->getTypeFromDocBlock($reflectionParameter);
+    }
+
+    public function isParameterOfType(ReflectionParameter $reflectionParameter, string $type): bool
+    {
+        $hintType = $this->getTypeFromTypeHint($reflectionParameter);
+        if (null !== $hintType && ($hintType === $type || is_a($hintType, $type, true))) {
+            return true;
+        }
+
+        $docBlockType = $this->getTypeFromDocBlock($reflectionParameter);
+        if (null !== $docBlockType && ($docBlockType === $type || is_a($docBlockType, $type, true))) {
+            return true;
+        }
+        if ('array' === $hintType && null !== $docBlockType && ($docBlockType === $type || is_a($docBlockType, $type, true))) {
+            return true;
+        }
+
+        return false;
     }
 
     public function getTypeFromDocBlock(ReflectionParameter $reflectionParameter): ?string
@@ -96,12 +118,22 @@ final class ParameterTypeRecognizer
             return 0;
         }
 
-        $currentTypeNode = $paramTypeNode;
+        $callback = function (TypeNode $typeNode, int &$level) use ($reflectionParameter, &$callback): void {
+            if ($typeNode instanceof UnionTypeNode) {
+                $callback($typeNode->types[0], $level);
+            }
+            if ($typeNode instanceof ArrayTypeNode) {
+                $level++;
+                $callback($typeNode->type, $level);
+            }
+            if ($typeNode instanceof GenericTypeNode && 'array' === $typeNode->type->name) {
+                $level++;
+                $callback($typeNode->genericTypes[0], $level);
+            }
+        };
+
         $level = 0;
-        while ($currentTypeNode instanceof ArrayTypeNode) {
-            ++$level;
-            $currentTypeNode = $currentTypeNode->type;
-        }
+        $callback($paramTypeNode, $level);
 
         return $level;
     }
