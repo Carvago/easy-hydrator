@@ -10,23 +10,21 @@ use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
+use PHPStan\PhpDocParser\Parser\TypeParser;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
-use Symplify\SimplePhpDocParser\SimplePhpDocParser;
-use Symplify\SimplePhpDocParser\ValueObject\Ast\PhpDoc\SimplePhpDocNode;
 
 /**
  * @see \Symplify\EasyHydrator\Tests\ParameterTypeRecognizerTest
  */
 final class ParameterTypeRecognizer
 {
-    public function __construct(
-        private SimplePhpDocParser $simplePhpDocParser
-    ) {
-    }
-
     public function isArray(ReflectionParameter $reflectionParameter): bool
     {
         $type = $this->getTypeFromTypeHint($reflectionParameter);
@@ -35,17 +33,9 @@ final class ParameterTypeRecognizer
             return true;
         }
 
-        $docNode = $this->getDocNode($reflectionParameter);
-        if (! $docNode instanceof SimplePhpDocNode) {
-            return false;
-        }
+        $paramTypeNode = $this->getParamTypeNode($reflectionParameter);
 
-        $typeNode = $docNode->getParamType($reflectionParameter->getName());
-        if ($typeNode instanceof ArrayTypeNode) {
-            return true;
-        }
-
-        return $typeNode instanceof GenericTypeNode;
+        return $paramTypeNode instanceof ArrayTypeNode || $paramTypeNode instanceof GenericTypeNode;
     }
 
     public function getType(ReflectionParameter $reflectionParameter): ?string
@@ -58,49 +48,42 @@ final class ParameterTypeRecognizer
         return $this->getTypeFromDocBlock($reflectionParameter);
     }
 
-    public function isParameterOfClass(ReflectionParameter $reflectionParameter, string $class): bool
-    {
-        $parameterType = $this->getType($reflectionParameter);
-
-        if ($parameterType === null) {
-            return false;
-        }
-
-        return is_a($parameterType, $class, true);
-    }
-
     public function getTypeFromDocBlock(ReflectionParameter $reflectionParameter): ?string
     {
-        $docNode = $this->getDocNode($reflectionParameter);
+        $paramTypeNode = $this->getParamTypeNode($reflectionParameter);
+        $contextReflectionClass = $reflectionParameter->getDeclaringClass();
 
-        $declaringReflectionClass = $reflectionParameter->getDeclaringClass();
-        if (! $declaringReflectionClass instanceof ReflectionClass) {
+        return $this->getTypeFromParamTypeNode($paramTypeNode, $contextReflectionClass);
+    }
+
+    private function getTypeFromParamTypeNode(?TypeNode $paramTypeNode, ?ReflectionClass $contextReflectionClass): ?string
+    {
+        if (null === $paramTypeNode) {
             return null;
         }
 
-        if (! $docNode instanceof SimplePhpDocNode) {
-            return null;
+        if ($paramTypeNode instanceof UnionTypeNode) {
+            return $this->getTypeFromParamTypeNode($paramTypeNode->types[0], $contextReflectionClass);
         }
 
-        $typeNode = $docNode->getParamType($reflectionParameter->getName());
-
-        if ($typeNode instanceof UnionTypeNode) {
-            $typeNode = $this->findFirstNonNullNodeType($typeNode);
+        if ($paramTypeNode instanceof ArrayTypeNode) {
+            return $this->getTypeFromParamTypeNode($paramTypeNode->type, $contextReflectionClass);
         }
 
-        if ($typeNode instanceof ArrayTypeNode) {
-            return $this->getTypeFromArrayTypeNode($typeNode, $reflectionParameter);
+        if ($paramTypeNode instanceof GenericTypeNode) {
+            // Take last declared type for some reason
+            return $this->getTypeFromParamTypeNode($paramTypeNode->genericTypes[count($paramTypeNode->genericTypes) - 1], $contextReflectionClass);
         }
 
-        if ($typeNode instanceof GenericTypeNode) {
-            $genericTypeNodes = $typeNode->genericTypes;
-            $genericTypeNode = $genericTypeNodes[count($genericTypeNodes) - 1];
+        if ($paramTypeNode instanceof IdentifierTypeNode) {
+            $typeNodeName = (string) $paramTypeNode;
 
-            return Reflection::expandClassName((string) $genericTypeNode, $declaringReflectionClass);
-        }
+            if (null !== $contextReflectionClass && !$contextReflectionClass->isAnonymous()) {
+                return Reflection::expandClassName($typeNodeName, $contextReflectionClass);
+            }
 
-        if ($typeNode instanceof IdentifierTypeNode) {
-            return Reflection::expandClassName($typeNode->name, $declaringReflectionClass);
+            // In case of FQCN in anonymous classes
+            return class_exists($typeNodeName) ? ltrim($typeNodeName, '\\') : $typeNodeName;
         }
 
         return null;
@@ -108,12 +91,12 @@ final class ParameterTypeRecognizer
 
     public function getArrayLevels(ReflectionParameter $reflectionParameter): int
     {
-        $docNode = $this->getDocNode($reflectionParameter);
-        if (! $docNode instanceof SimplePhpDocNode) {
+        $paramTypeNode = $this->getParamTypeNode($reflectionParameter);
+        if (null === $paramTypeNode) {
             return 0;
         }
 
-        $currentTypeNode = $docNode->getParamType($reflectionParameter->getName());
+        $currentTypeNode = $paramTypeNode;
         $level = 0;
         while ($currentTypeNode instanceof ArrayTypeNode) {
             ++$level;
@@ -121,34 +104,6 @@ final class ParameterTypeRecognizer
         }
 
         return $level;
-    }
-
-    private function getTypeFromArrayTypeNode(
-        ArrayTypeNode $arrayTypeNode,
-        ReflectionParameter $reflectionParameter
-    ): ?string {
-        $declaringReflectionClass = $reflectionParameter->getDeclaringClass();
-        if (! $declaringReflectionClass instanceof ReflectionClass) {
-            return null;
-        }
-
-        $currentTypeNode = $arrayTypeNode;
-        do {
-            $identifierTypeNode = $currentTypeNode->type;
-            if ($identifierTypeNode instanceof IdentifierTypeNode) {
-                return Reflection::expandClassName($identifierTypeNode->name, $declaringReflectionClass);
-            }
-
-            if ($identifierTypeNode instanceof GenericTypeNode) {
-                $genericTypeNodes = $identifierTypeNode->genericTypes;
-                $genericTypeNode = $genericTypeNodes[count($genericTypeNodes) - 1];
-                return Reflection::expandClassName((string) $genericTypeNode, $declaringReflectionClass);
-            }
-
-            $currentTypeNode = $identifierTypeNode;
-        } while ($currentTypeNode instanceof ArrayTypeNode);
-
-        return null;
     }
 
     private function getTypeFromTypeHint(ReflectionParameter $reflectionParameter): ?string
@@ -160,18 +115,7 @@ final class ParameterTypeRecognizer
         };
     }
 
-    private function findFirstNonNullNodeType(UnionTypeNode $unionTypeNode): ?TypeNode
-    {
-        foreach ($unionTypeNode->types as $innerType) {
-            if ((string) $innerType !== 'null') {
-                return $innerType;
-            }
-        }
-
-        return null;
-    }
-
-    private function getDocNode(ReflectionParameter $reflectionParameter): ?SimplePhpDocNode
+    private function getParamTypeNode(ReflectionParameter $reflectionParameter): ?TypeNode
     {
         $functionReflection = $reflectionParameter->getDeclaringFunction();
         $docComment = $functionReflection->getDocComment();
@@ -180,6 +124,20 @@ final class ParameterTypeRecognizer
             return null;
         }
 
-        return $this->simplePhpDocParser->parseDocBlock($docComment);
+        $phpDocParser = new PhpDocParser(new TypeParser(new ConstExprParser()), new ConstExprParser());
+        $lexer = new Lexer();
+
+        $tokens = $lexer->tokenize($docComment);
+        $tokenIterator = new TokenIterator($tokens);
+
+        $docNode = $phpDocParser->parse($tokenIterator);
+
+        foreach ($docNode->getParamTagValues() as $paramTagValueNode) {
+            if ($paramTagValueNode->parameterName === '$' . $reflectionParameter->getName()) {
+                return $paramTagValueNode->type;
+            }
+        }
+
+        return null;
     }
 }

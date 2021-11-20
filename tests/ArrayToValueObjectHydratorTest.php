@@ -6,6 +6,7 @@ namespace Symplify\EasyHydrator\Tests;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
 use Symplify\EasyHydrator\Tests\Fixture\Arrays;
 use Symplify\EasyHydrator\Tests\Fixture\ImmutableTimeEvent;
@@ -15,10 +16,8 @@ use Symplify\EasyHydrator\Tests\Fixture\PersonsCollection;
 use Symplify\EasyHydrator\Tests\Fixture\PersonWithAge;
 use Symplify\EasyHydrator\Tests\Fixture\TimeEvent;
 use Symplify\EasyHydrator\Tests\Fixture\UnionPerson;
-use Symplify\EasyHydrator\Tests\HttpKernel\EasyHydratorTestKernel;
-use Symplify\PackageBuilder\Testing\AbstractKernelTestCase;
 
-final class ArrayToValueObjectHydratorTest extends AbstractKernelTestCase
+final class ArrayToValueObjectHydratorTest extends KernelTestCase
 {
     /**
      * @var array<int, array<string, string>>
@@ -36,9 +35,14 @@ final class ArrayToValueObjectHydratorTest extends AbstractKernelTestCase
 
     protected function setUp(): void
     {
-        $this->bootKernel(EasyHydratorTestKernel::class);
+        /** @var ArrayToValueObjectHydrator $arrayToValueObjectHydrator */
+        $arrayToValueObjectHydrator = self::getContainer()->get(ArrayToValueObjectHydrator::class);
+        $this->arrayToValueObjectHydrator = $arrayToValueObjectHydrator;
+    }
 
-        $this->arrayToValueObjectHydrator = $this->getService(ArrayToValueObjectHydrator::class);
+    protected static function getKernelClass(): string
+    {
+        return TestKernel::class;
     }
 
     public function test(): void

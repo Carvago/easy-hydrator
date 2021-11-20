@@ -12,14 +12,14 @@ final class TypeCastersCollector
     /**
      * @var TypeCasterInterface[]
      */
-    private array $typeCasters = [];
+    private array $typeCasters;
 
     /**
-     * @param TypeCasterInterface[] $typeCasters
+     * @param iterable<TypeCasterInterface> $typeCasters
      */
-    public function __construct(array $typeCasters)
+    public function __construct(iterable $typeCasters)
     {
-        $this->typeCasters = $this->sortCastersByPriority($typeCasters);
+        $this->typeCasters = $this->sortCastersByPriority(iterator_to_array($typeCasters));
     }
 
     public function retype(

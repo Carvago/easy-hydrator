@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator\Tests;
 
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
 use Symplify\EasyHydrator\Tests\Fixture\TypedProperty;
-use Symplify\EasyHydrator\Tests\HttpKernel\EasyHydratorTestKernel;
-use Symplify\PackageBuilder\Testing\AbstractKernelTestCase;
 
-final class TypedPropertiesTest extends AbstractKernelTestCase
+final class TypedPropertiesTest extends KernelTestCase
 {
     private ArrayToValueObjectHydrator $arrayToValueObjectHydrator;
 
     protected function setUp(): void
     {
-        $this->bootKernel(EasyHydratorTestKernel::class);
+        /** @var ArrayToValueObjectHydrator $arrayToValueObjectHydrator */
+        $arrayToValueObjectHydrator = self::getContainer()->get(ArrayToValueObjectHydrator::class);
+        $this->arrayToValueObjectHydrator = $arrayToValueObjectHydrator;
+    }
 
-        $this->arrayToValueObjectHydrator = $this->getService(ArrayToValueObjectHydrator::class);
+    protected static function getKernelClass(): string
+    {
+        return TestKernel::class;
     }
 
     public function test(): void
