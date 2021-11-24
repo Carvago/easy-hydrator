@@ -4,77 +4,37 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator\TypeCaster;
 
-use ReflectionParameter;
+use RuntimeException;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\ParameterTypeRecognizer;
-use Symplify\EasyHydrator\TypeCastersCollector;
+use Symplify\EasyHydrator\TypeDefinition;
 
 final class ArrayTypeCaster implements TypeCasterInterface
 {
-    public function __construct(
-        private ParameterTypeRecognizer $parameterTypeRecognizer
-    ) {
-    }
-
-    public function isSupported(ReflectionParameter $reflectionParameter): bool
+    public function isSupported(TypeDefinition $typeDefinition): bool
     {
-        return $this->parameterTypeRecognizer->isParameterOfType($reflectionParameter, 'array');
+        return $typeDefinition->supports(TypeDefinition::ARRAY);
     }
 
     public function retype(
         mixed $value,
-        ReflectionParameter $reflectionParameter,
-        TypeCastersCollector $typeCastersCollector,
+        TypeDefinition $typeDefinition,
+        TypeCasterInterface $rootTypeCaster,
     ): ?array {
-        $type = $this->parameterTypeRecognizer->getTypeFromDocBlock($reflectionParameter);
-        $arrayLevels = $this->parameterTypeRecognizer->getArrayLevels($reflectionParameter);
-        if ($this->isAllowedNull($value, $reflectionParameter)) {
+        if (null === $value && $typeDefinition->supportsNull()) {
             return null;
         }
+        if (!is_array($value)) {
+            throw new RuntimeException('Expected array, given: ' . gettype($value));
+        }
+        if (null === $typeDefinition->getInnerTypeDefinition()) {
+            throw new RuntimeException('Array have no item type');
+        }
 
-        $mapMultilevelArray = static function ($levels) use ($type, &$mapMultilevelArray): callable {
-            return static function ($value) use ($type, &$mapMultilevelArray, $levels) {
-                $arrayLevel = $levels - 1;
-                if ($arrayLevel > 0) {
-                    $currentMapFunction = $mapMultilevelArray($arrayLevel);
-                    return array_map($currentMapFunction, $value);
-                }
-
-                if ($type === 'string') {
-                    return (string) $value;
-                }
-
-                if ($type === 'bool') {
-                    return (bool) $value;
-                }
-
-                if ($type === 'int') {
-                    return (int) $value;
-                }
-
-                if ($type === 'float') {
-                    return (float) $value;
-                }
-
-                return $value;
-            };
-        };
-
-        $currentMapFunction = $mapMultilevelArray($arrayLevels);
-        return array_map($currentMapFunction, $value);
+        return array_map(fn (mixed $item) => $rootTypeCaster->retype($item, $typeDefinition->getInnerTypeDefinition(), $rootTypeCaster), $value);
     }
 
     public function getPriority(): int
     {
         return 0;
-    }
-
-    private function isAllowedNull($value, ReflectionParameter $reflectionParameter): bool
-    {
-        if ($value !== null) {
-            return false;
-        }
-
-        return $reflectionParameter->allowsNull();
     }
 }

@@ -12,11 +12,11 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 final class EasyHydratorExtension extends Extension
 {
     /**
-     * @param string[] $configs
+     * @param array<string> $configs
      */
-    public function load(array $configs, ContainerBuilder $containerBuilder): void
+    public function load(array $configs, ContainerBuilder $container): void
     {
-        $phpFileLoader = new PhpFileLoader($containerBuilder, new FileLocator(__DIR__ . '/../../../config'));
+        $phpFileLoader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../../config'));
         $phpFileLoader->load('config.php');
     }
 }

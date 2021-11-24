@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator;
 
-use ReflectionParameter;
+use RuntimeException;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
 
-final class TypeCastersCollector
+class TypeCastersCollector implements TypeCasterInterface
 {
     /**
-     * @var TypeCasterInterface[]
+     * @var array<TypeCasterInterface>
      */
     private array $typeCasters;
 
@@ -22,25 +22,35 @@ final class TypeCastersCollector
         $this->typeCasters = $this->sortCastersByPriority([...$typeCasters]);
     }
 
+    public function isSupported(TypeDefinition $typeDefinition): bool
+    {
+        return true;
+    }
+
     public function retype(
         mixed $value,
-        ReflectionParameter $reflectionParameter,
-        TypeCastersCollector $typeCastersCollector,
+        TypeDefinition $typeDefinition,
+        TypeCasterInterface $rootTypeCaster,
     ): mixed {
         foreach ($this->typeCasters as $typeCaster) {
-            if ($typeCaster->isSupported($reflectionParameter)) {
-                return $typeCaster->retype($value, $reflectionParameter, $typeCastersCollector);
+            if ($typeCaster->isSupported($typeDefinition)) {
+                return $typeCaster->retype($value, $typeDefinition, $rootTypeCaster);
             }
         }
 
-        return $value;
+        throw new RuntimeException('No TypeCaster found to handle type: ' . $typeDefinition);
+    }
+
+    public function getPriority(): int
+    {
+        return 0;
     }
 
     /**
      * Bigger number means more prioritized execution
      *
-     * @param TypeCasterInterface[] $typeCasters
-     * @return TypeCasterInterface[]
+     * @param array<TypeCasterInterface> $typeCasters
+     * @return array<TypeCasterInterface>
      */
     private function sortCastersByPriority(array $typeCasters): array
     {
