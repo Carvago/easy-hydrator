@@ -10,7 +10,7 @@ use DateTimeInterface;
 use EAG\EasyHydrator\Contract\TypeCasterInterface;
 use EAG\EasyHydrator\TypeDefinition;
 use Nette\Utils\DateTime as NetteDateTime;
-use RuntimeException;
+use UnexpectedValueException;
 
 final class DateTimeTypeCaster implements TypeCasterInterface
 {
@@ -23,12 +23,12 @@ final class DateTimeTypeCaster implements TypeCasterInterface
         mixed $value,
         TypeDefinition $typeDefinition,
         TypeCasterInterface $rootTypeCaster,
-    ): ?DateTimeInterface {
+    ): mixed {
         if ($typeDefinition->supportsValue($value)) {
             return $value;
         }
         if (!is_string($value)) {
-            throw new RuntimeException('Expected string, given: ' . gettype($value));
+            throw new UnexpectedValueException('Expected string, given: ' . gettype($value));
         }
 
         $dateTime = NetteDateTime::from($value);

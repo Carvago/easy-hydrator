@@ -77,7 +77,6 @@ final class TypeDefinition implements Stringable
 
     /**
      * @param string|class-string $type
-     * @return bool
      */
     public function supports(string $type): bool
     {

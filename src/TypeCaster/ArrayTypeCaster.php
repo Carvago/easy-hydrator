@@ -6,7 +6,7 @@ namespace EAG\EasyHydrator\TypeCaster;
 
 use EAG\EasyHydrator\Contract\TypeCasterInterface;
 use EAG\EasyHydrator\TypeDefinition;
-use RuntimeException;
+use UnexpectedValueException;
 
 final class ArrayTypeCaster implements TypeCasterInterface
 {
@@ -15,22 +15,19 @@ final class ArrayTypeCaster implements TypeCasterInterface
         return $typeDefinition->supports(TypeDefinition::ARRAY);
     }
 
-    /**
-     * @return array<mixed>|null
-     */
     public function retype(
         mixed $value,
         TypeDefinition $typeDefinition,
         TypeCasterInterface $rootTypeCaster,
-    ): ?array {
+    ): mixed {
         if (null === $value && $typeDefinition->supportsNull()) {
             return null;
         }
         if (!is_array($value)) {
-            throw new RuntimeException('Expected array, given: ' . gettype($value));
+            throw new UnexpectedValueException('Expected array, given: ' . gettype($value));
         }
         if (null === $typeDefinition->getInnerTypeDefinition()) {
-            throw new RuntimeException('Array have no item type');
+            throw new UnexpectedValueException('Array have no item type');
         }
 
         return array_map(fn (mixed $item) => $rootTypeCaster->retype($item, $typeDefinition->getInnerTypeDefinition(), $rootTypeCaster), $value);

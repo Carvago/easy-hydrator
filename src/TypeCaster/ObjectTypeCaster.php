@@ -11,7 +11,7 @@ use EAG\EasyHydrator\TypeDefinition;
 use EAG\EasyHydrator\TypeDefinitionBuilder;
 use ReflectionClass;
 use ReflectionParameter;
-use RuntimeException;
+use UnexpectedValueException;
 use function Symfony\Component\String\b;
 
 final class ObjectTypeCaster implements TypeCasterInterface
@@ -30,12 +30,12 @@ final class ObjectTypeCaster implements TypeCasterInterface
             return $value;
         }
         if (!is_array($value)) {
-            throw new RuntimeException('Expected array, given: ' . gettype($value));
+            throw new UnexpectedValueException('Expected array, given: ' . gettype($value));
         }
 
         $className = $typeDefinition->getFirstAvailableType();
         if (!class_exists($className)) {
-            throw new RuntimeException('First declared type expected to be class, given: ' . $className);
+            throw new UnexpectedValueException('First declared type expected to be class, given: ' . $className);
         }
 
         if (null === (new ReflectionClass($className))->getConstructor()) {
