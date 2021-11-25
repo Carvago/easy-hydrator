@@ -20,8 +20,8 @@ final class ArrayTypeCaster implements TypeCasterInterface
         TypeDefinition $typeDefinition,
         TypeCasterInterface $rootTypeCaster,
     ): mixed {
-        if (null === $value && $typeDefinition->supportsNull()) {
-            return null;
+        if (!is_array($value) && $typeDefinition->supportsValue($value)) {
+            return $value;
         }
         if (!is_array($value)) {
             throw new UnexpectedValueException('Expected array, given: ' . gettype($value));

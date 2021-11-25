@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace EAG\EasyHydrator\Tests\TypeCaster;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use EAG\EasyHydrator\Contract\TypeCasterInterface;
 use EAG\EasyHydrator\Tests\Fixture\TestA;
 use EAG\EasyHydrator\TypeCaster\ArrayTypeCaster;
@@ -39,6 +42,15 @@ final class ArrayTypeCasterTest extends TestCase
         yield [new TypeDefinition(['array', 'null'], new TypeDefinition(['array', 'null'], new TypeDefinition(['string', 'null']))), true];
 
         yield [new TypeDefinition([TestA::class]), false];
+
+        yield [new TypeDefinition([DateTimeInterface::class]), false];
+        yield [new TypeDefinition([DateTime::class]), false];
+        yield [new TypeDefinition([DateTimeImmutable::class]), false];
+
+        yield [new TypeDefinition(['callable']), false];
+        yield [new TypeDefinition(['iterable']), false];
+        yield [new TypeDefinition(['mixed']), false];
+        yield [new TypeDefinition(['object']), false];
     }
 
     /**

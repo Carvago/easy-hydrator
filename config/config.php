@@ -6,6 +6,7 @@ use EAG\EasyHydrator\ArrayToValueObjectHydrator;
 use EAG\EasyHydrator\EasyHydratorBundle;
 use EAG\EasyHydrator\TypeCaster\ArrayTypeCaster;
 use EAG\EasyHydrator\TypeCaster\DateTimeTypeCaster;
+use EAG\EasyHydrator\TypeCaster\MixedTypeCaster;
 use EAG\EasyHydrator\TypeCaster\ObjectTypeCaster;
 use EAG\EasyHydrator\TypeCaster\ScalarTypeCaster;
 use EAG\EasyHydrator\TypeCastersCollector;
@@ -23,6 +24,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(DateTimeTypeCaster::class);
     $services->set(ObjectTypeCaster::class);
     $services->set(ScalarTypeCaster::class);
+    $services->set(MixedTypeCaster::class);
 
     $services->set(TypeCastersCollector::class)
         ->autoconfigure(false)

@@ -46,6 +46,11 @@ final class ObjectTypeCasterTest extends TestCase
         yield [new TypeDefinition([DateTimeInterface::class]), false];
         yield [new TypeDefinition([DateTime::class]), true];
         yield [new TypeDefinition([DateTimeImmutable::class]), true];
+
+        yield [new TypeDefinition(['callable']), false];
+        yield [new TypeDefinition(['iterable']), false];
+        yield [new TypeDefinition(['mixed']), false];
+        yield [new TypeDefinition(['object']), false];
     }
 
     /**

@@ -15,6 +15,23 @@ final class TypeDefinition implements Stringable
     public const FLOAT = 'float';
     public const BOOL = 'bool';
     public const NULL = 'null';
+    public const MIXED = 'mixed';
+    public const OBJECT = 'object';
+    public const CALLABLE = 'callable';
+    public const ITERABLE = 'iterable';
+
+    private const BUILTIN_TYPES = [
+        self::ARRAY,
+        self::STRING,
+        self::INT,
+        self::FLOAT,
+        self::BOOL,
+        self::NULL,
+        self::MIXED,
+        self::OBJECT,
+        self::CALLABLE,
+        self::ITERABLE,
+    ];
 
     /**
      * @param non-empty-array<string|class-string> $types
@@ -34,7 +51,7 @@ final class TypeDefinition implements Stringable
             throw new InvalidArgumentException('Type has inner type definition, but does not support array');
         }
         foreach ($this->types as $type) {
-            $isBuiltin = in_array($type, [self::ARRAY, self::STRING, self::INT, self::FLOAT, self::BOOL, self::NULL], true);
+            $isBuiltin = in_array($type, self::BUILTIN_TYPES, true);
             $isClass = class_exists($type) || interface_exists($type);
             if (!$isBuiltin && !$isClass) {
                 throw new InvalidArgumentException('Provided value is not a type or class/interface: ' . $type);
