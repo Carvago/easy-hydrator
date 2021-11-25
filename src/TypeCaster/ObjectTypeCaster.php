@@ -18,9 +18,7 @@ final class ObjectTypeCaster implements TypeCasterInterface
 {
     public function isSupported(TypeDefinition $typeDefinition): bool
     {
-        $className = $typeDefinition->getFirstAvailableType();
-
-        return null !== $className && class_exists($className);
+        return class_exists($typeDefinition->getFirstAvailableType());
     }
 
     public function retype(

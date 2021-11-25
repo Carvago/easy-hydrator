@@ -21,20 +21,20 @@ final class TypeDefinition implements Stringable
      */
     public function __construct(private array $types, private ?TypeDefinition $innerTypeDefinition = null)
     {
-        if (empty($this->types)) {
+        if ([] === $this->types) {
             throw new InvalidArgumentException('List of types could not be empty');
         }
         if ([] === array_filter($this->types, fn (string $type) => self::NULL !== $type)) {
             throw new InvalidArgumentException('List of types should contain at least on type along with null');
         }
-        if (in_array(self::ARRAY, $this->types) && !$this->innerTypeDefinition) {
+        if (in_array(self::ARRAY, $this->types, true) && null === $this->innerTypeDefinition) {
             throw new InvalidArgumentException('Type supports array, but have no specified inner type definition');
         }
-        if ($this->innerTypeDefinition && !in_array(self::ARRAY, $this->types)) {
+        if (null !== $this->innerTypeDefinition && !in_array(self::ARRAY, $this->types, true)) {
             throw new InvalidArgumentException('Type has inner type definition, but does not support array');
         }
         foreach ($this->types as $type) {
-            $isBuiltin = in_array($type, [self::ARRAY, self::STRING, self::INT, self::FLOAT, self::BOOL, self::NULL]);
+            $isBuiltin = in_array($type, [self::ARRAY, self::STRING, self::INT, self::FLOAT, self::BOOL, self::NULL], true);
             $isClass = class_exists($type) || interface_exists($type);
             if (!$isBuiltin && !$isClass) {
                 throw new InvalidArgumentException('Provided value is not a type or class/interface: ' . $type);
@@ -103,13 +103,13 @@ final class TypeDefinition implements Stringable
 
     public function supportsNull(): bool
     {
-        return in_array(self::NULL, $this->types);
+        return in_array(self::NULL, $this->types, true);
     }
 
     public function __toString(): string
     {
         return implode('|', array_map(function(string $type): string {
-            if ('array' === $type && $this->innerTypeDefinition) {
+            if ('array' === $type && null !== $this->innerTypeDefinition) {
                 return 'array<' . $this->innerTypeDefinition . '>';
             }
             return $type;

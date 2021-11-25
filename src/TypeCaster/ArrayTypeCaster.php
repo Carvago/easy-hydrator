@@ -15,6 +15,9 @@ final class ArrayTypeCaster implements TypeCasterInterface
         return $typeDefinition->supports(TypeDefinition::ARRAY);
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function retype(
         mixed $value,
         TypeDefinition $typeDefinition,

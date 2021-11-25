@@ -62,7 +62,7 @@ final class TypeDefinitionBuilder
         }
 
         // Integers also could be passed as floats
-        if (in_array(TypeDefinition::FLOAT, $this->types) && !in_array(TypeDefinition::INT, $this->types)) {
+        if (in_array(TypeDefinition::FLOAT, $this->types, true) && !in_array(TypeDefinition::INT, $this->types, true)) {
             $this->types[] = TypeDefinition::INT;
         }
 
@@ -71,6 +71,9 @@ final class TypeDefinitionBuilder
         return new TypeDefinition($this->types, $this->innerTypeDefinitionBuilder?->build());
     }
 
+    /**
+     * @return array<string>
+     */
     private static function getTypeHintTypes(ReflectionParameter $reflectionParameter): array
     {
         return match (true) {
@@ -91,13 +94,13 @@ final class TypeDefinitionBuilder
      *
      * @param array<string|class-string>|null $types
      */
-    private static function parseDocBlockType(TypeNode $typeNode, ?array &$types, ReflectionClass $contextReflectionClass): ?TypeNode
+    private static function parseDocBlockType(TypeNode $typeNode, ?array &$types, ?ReflectionClass $contextReflectionClass): ?TypeNode
     {
         $types ??= [];
         $innerType = null;
 
         if ($typeNode instanceof UnionTypeNode) {
-            foreach ($typeNode->types as $i => $unionType) {
+            foreach ($typeNode->types as $unionType) {
                 $unionInnerType = self::parseDocBlockType($unionType, $types, $contextReflectionClass);
                 $innerType ??= $unionInnerType;
             }
@@ -119,7 +122,11 @@ final class TypeDefinitionBuilder
         }
 
         if ($typeNode instanceof IdentifierTypeNode) {
-            if (!$contextReflectionClass->isAnonymous()) {
+            if (Reflection::isBuiltinType($typeNode->name)) {
+                $types[] = $typeNode->name;
+            }
+
+            if (null !== $contextReflectionClass && !$contextReflectionClass->isAnonymous()) {
                 $types[] = Reflection::expandClassName($typeNode->name, $contextReflectionClass);
             }
 
