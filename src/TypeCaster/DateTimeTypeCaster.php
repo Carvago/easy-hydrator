@@ -4,39 +4,36 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator\TypeCaster;
 
+use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Nette\Utils\DateTime as NetteDateTime;
-use ReflectionParameter;
+use RuntimeException;
 use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\ParameterTypeRecognizer;
-use Symplify\EasyHydrator\TypeCastersCollector;
+use Symplify\EasyHydrator\TypeDefinition;
 
 final class DateTimeTypeCaster implements TypeCasterInterface
 {
-    public function __construct(
-        private ParameterTypeRecognizer $parameterTypeRecognizer
-    ) {
-    }
-
-    public function isSupported(ReflectionParameter $reflectionParameter): bool
+    public function isSupported(TypeDefinition $typeDefinition): bool
     {
-        return $this->parameterTypeRecognizer->isParameterOfType($reflectionParameter, DateTimeInterface::class);
+        return $typeDefinition->supportsAnyOf(DateTimeInterface::class, DateTime::class, DateTimeImmutable::class);
     }
 
     public function retype(
         mixed $value,
-        ReflectionParameter $reflectionParameter,
-        TypeCastersCollector $typeCastersCollector,
+        TypeDefinition $typeDefinition,
+        TypeCasterInterface $rootTypeCaster,
     ): ?DateTimeInterface {
-        if ($value === null && $reflectionParameter->allowsNull()) {
-            return null;
+        if ($typeDefinition->supportsValue($value)) {
+            return $value;
+        }
+        if (!is_string($value)) {
+            throw new RuntimeException('Expected string, given: ' . gettype($value));
         }
 
         $dateTime = NetteDateTime::from($value);
-        $class = $this->parameterTypeRecognizer->getType($reflectionParameter);
 
-        if ($class === DateTimeImmutable::class) {
+        if ($typeDefinition->getFirstAvailableType() === DateTimeImmutable::class) {
             return DateTimeImmutable::createFromMutable($dateTime);
         }
 

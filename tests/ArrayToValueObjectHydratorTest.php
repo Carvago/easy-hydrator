@@ -4,336 +4,234 @@ declare(strict_types=1);
 
 namespace Symplify\EasyHydrator\Tests;
 
+use DateTime;
 use DateTimeImmutable;
-use DateTimeInterface;
+use Exception;
+use Generator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
-use Symplify\EasyHydrator\Tests\Fixture\Arrays;
-use Symplify\EasyHydrator\Tests\Fixture\ImmutableTimeEvent;
-use Symplify\EasyHydrator\Tests\Fixture\Marriage;
-use Symplify\EasyHydrator\Tests\Fixture\Person;
-use Symplify\EasyHydrator\Tests\Fixture\PersonsCollection;
-use Symplify\EasyHydrator\Tests\Fixture\PersonWithAge;
-use Symplify\EasyHydrator\Tests\Fixture\TimeEvent;
-use Symplify\EasyHydrator\Tests\Fixture\UnionPerson;
+use Symplify\EasyHydrator\Exception\MissingConstructorException;
+use Symplify\EasyHydrator\Exception\MissingDataException;
+use Symplify\EasyHydrator\Tests\Fixture\TestA;
+use Symplify\EasyHydrator\Tests\Fixture\TestAB;
+use Symplify\EasyHydrator\Tests\Fixture\TestArray;
+use Symplify\EasyHydrator\Tests\Fixture\TestB;
+use Symplify\EasyHydrator\Tests\Fixture\TestDateTime;
+use Symplify\EasyHydrator\Tests\Fixture\TestDefaults;
+use Symplify\EasyHydrator\Tests\Fixture\TestScalars;
+use Symplify\EasyHydrator\Tests\Fixture\TestNoConstructor;
+use Symplify\EasyHydrator\Tests\Fixture\TestUnion;
 
 final class ArrayToValueObjectHydratorTest extends KernelTestCase
 {
-    /**
-     * @var array<int, array<string, string>>
-     */
-    private const TIME_EVENTS_DATA = [
-        [
-            'when' => '2020-02-02',
-        ],
-        [
-            'when' => '2020-04-04',
-        ],
-    ];
-
-    private ArrayToValueObjectHydrator $arrayToValueObjectHydrator;
-
-    protected function setUp(): void
-    {
-        /** @var ArrayToValueObjectHydrator $arrayToValueObjectHydrator */
-        $arrayToValueObjectHydrator = self::getContainer()->get(ArrayToValueObjectHydrator::class);
-        $this->arrayToValueObjectHydrator = $arrayToValueObjectHydrator;
-    }
-
     protected static function getKernelClass(): string
     {
         return TestKernel::class;
     }
 
-    public function test(): void
+    /**
+     * @dataProvider hydrateArrayCases
+     * @param array<mixed> $data
+     * @param class-string $className
+     */
+    public function testHydrateArray(array $data, string $className, object $expected): void
     {
-        $person = $this->arrayToValueObjectHydrator->hydrateArray([
-            'name' => 'Tom',
-        ], Person::class);
+        /** @var ArrayToValueObjectHydrator $arrayToValueObjectHydrator */
+        $arrayToValueObjectHydrator = self::getContainer()->get(ArrayToValueObjectHydrator::class);
 
-        $this->assertInstanceOf(Person::class, $person);
+        $actual = $arrayToValueObjectHydrator->hydrateArray($data, $className);
 
-        /** @var Person $person */
-        $this->assertSame('Tom', $person->getName());
-    }
+        self::assertEquals($expected, $actual);
 
-    public function testWithoutRetype(): void
-    {
-        $marriage = $this->arrayToValueObjectHydrator->hydrateArray([
-            'personA' => new Person('A'),
-            'personB' => new Person('B'),
-            'date' => new DateTimeImmutable('2020-02-03'),
-        ], Marriage::class);
+        $actual = $arrayToValueObjectHydrator->hydrateArrays([$data, $data], $className);
 
-        $this->assertInstanceOf(Marriage::class, $marriage);
-
-        /** @var Marriage $marriage */
-        $person = $marriage->getPersonA();
-        $this->assertSame('A', $person->getName());
-    }
-
-    public function testRetypes(): void
-    {
-        $personWithAge = $this->arrayToValueObjectHydrator->hydrateArray([
-            'name' => 'John',
-            // retype this
-            'age' => '50',
-        ], PersonWithAge::class);
-
-        $this->assertInstanceOf(PersonWithAge::class, $personWithAge);
-
-        /** @var PersonWithAge $personWithAge */
-        $this->assertSame(50, $personWithAge->getAge());
-
-        // retype scalar arrays
-        $data = [
-            'integers' => ['1', 2.0],
-            'floats' => ['1.1', 2],
-            'booleans' => ['true', '0'],
-            'strings' => [1, 2.2],
-            'arrayOfArrays' => [[[1, 2], [3, 4]], [[]]],
-        ];
-
-        /** @var Arrays $actual */
-        $actual = $this->arrayToValueObjectHydrator->hydrateArray($data, Arrays::class);
-
-        $this->assertSame([1, 2], $actual->getIntegers());
-        $this->assertSame([1.1, 2.0], $actual->getFloats());
-        $this->assertSame([true, false], $actual->getBooleans());
-        $this->assertSame(['1', '2.2'], $actual->getStrings());
-        $this->assertSame([[[1, 2], [3, 4]], [[]]], $actual->getArrayOfArrays());
-    }
-
-    public function testDateTimeImmutable(): void
-    {
-        $timeEvent = $this->arrayToValueObjectHydrator->hydrateArray([
-            'when' => '2020-02-02',
-        ], ImmutableTimeEvent::class);
-
-        $this->assertInstanceOf(ImmutableTimeEvent::class, $timeEvent);
-
-        /** @var ImmutableTimeEvent $timeEvent */
-        $this->assertInstanceOf(DateTimeImmutable::class, $timeEvent->getWhen());
-    }
-
-    public function testDateTime(): void
-    {
-        $timeEvent = $this->arrayToValueObjectHydrator->hydrateArray([
-            'when' => '2020-02-02',
-        ], TimeEvent::class);
-
-        $this->assertInstanceOf(TimeEvent::class, $timeEvent);
-
-        /** @var TimeEvent $timeEvent */
-        $this->assertInstanceOf(DateTimeInterface::class, $timeEvent->getWhen());
-    }
-
-    public function testMultipleImmutable(): void
-    {
-        $timeEvents = $this->arrayToValueObjectHydrator->hydrateArrays(
-            self::TIME_EVENTS_DATA,
-            ImmutableTimeEvent::class
-        );
-
-        $this->assertCount(2, $timeEvents);
-
-        foreach ($timeEvents as $timeEvent) {
-            $this->assertInstanceOf(ImmutableTimeEvent::class, $timeEvent);
-        }
-    }
-
-    public function testMultiple(): void
-    {
-        $timeEvents = $this->arrayToValueObjectHydrator->hydrateArrays(self::TIME_EVENTS_DATA, TimeEvent::class);
-        $this->assertCount(2, $timeEvents);
-        foreach ($timeEvents as $timeEvent) {
-            $this->assertInstanceOf(TimeEvent::class, $timeEvent);
-        }
-    }
-
-    public function testMultipleArrays(): void
-    {
-        $data = [
-            [
-                'integers' => [1, 2],
-                'floats' => [1.1, 2.2],
-                'booleans' => [true, false],
-                'strings' => ['a', 'b'],
-                'arrayOfArrays' => [[[1, 2], [3, 4]]],
-            ],
-            [
-                'integers' => [3, 4],
-                'floats' => [3.3, 4.24],
-                'booleans' => [false, true],
-                'strings' => ['c', 'd'],
-                'arrayOfArrays' => [[[3, 4], [1, 2]]],
-            ],
-        ];
-
-        /** @var Arrays[] $arrayOfArrays */
-        $arrayOfArrays = $this->arrayToValueObjectHydrator->hydrateArrays($data, Arrays::class);
-
-        $this->assertCount(2, $arrayOfArrays);
-        $this->assertContainsOnlyInstancesOf(Arrays::class, $arrayOfArrays);
-
-        $this->assertArraysHasValidTypes($arrayOfArrays);
-    }
-
-    public function testMultipleRecursiveObjects(): void
-    {
-        $data = [
-            [
-                'date' => '2019-06-21',
-                'personA' => [
-                    'name' => 'John Doe 1',
-                ],
-                'personB' => [
-                    'name' => 'Jane Doe 1',
-                ],
-            ],
-            [
-                'date' => '2019-06-22',
-                'personA' => [
-                    'name' => 'John Doe 2',
-                ],
-                'personB' => [
-                    'name' => 'Jane Doe 2',
-                ],
-            ],
-        ];
-
-        $marriages = $this->arrayToValueObjectHydrator->hydrateArrays($data, Marriage::class);
-
-        $this->assertCount(2, $marriages);
-        $this->assertContainsOnlyInstancesOf(Marriage::class, $marriages);
-    }
-
-    public function testMultipleRecursiveArrayOfObjects(): void
-    {
-        $data = [
-            [
-                'persons' => [
-                    [
-                        'name' => 'John Doe 1',
-                    ],
-                    [
-                        'name' => 'Jane Doe 1',
-                    ],
-                ],
-                'indexedPersons' => [
-                    'HOMER' => [
-                        'name' => 'Homer',
-                    ],
-                ],
-            ],
-            [
-                'persons' => [
-                    [
-                        'name' => 'John Doe 2',
-                    ],
-                    [
-                        'name' => 'Jane Doe 2',
-                    ],
-                ],
-                'indexedPersons' => [
-                    'HOMER' => [
-                        'name' => 'Homer',
-                    ],
-                ],
-            ],
-        ];
-
-        /** @var PersonsCollection[] $personsCollections */
-        $personsCollections = $this->arrayToValueObjectHydrator->hydrateArrays($data, PersonsCollection::class);
-
-        $this->assertCount(2, $personsCollections);
-
-        foreach ($personsCollections as $personsCollection) {
-            $persons = $personsCollection->getPersons();
-
-            $this->assertCount(2, $persons);
-            $this->assertContainsOnlyInstancesOf(Person::class, $persons);
-
-            $indexedPersons = $personsCollection->getIndexedPersons();
-            $this->assertCount(1, $indexedPersons);
-            $this->assertArrayHasKey('HOMER', $indexedPersons);
-            $this->assertContainsOnlyInstancesOf(Person::class, $indexedPersons);
-        }
-    }
-
-    public function testUnion(): void
-    {
-        $data = [
-            'person' => [
-                'name' => 'John Doe',
-            ],
-        ];
-
-        $person = $this->arrayToValueObjectHydrator->hydrateArray($data, UnionPerson::class);
-
-        $this->assertInstanceOf(UnionPerson::class, $person);
-        $this->assertInstanceOf(Person::class, $person->getPerson());
-        $this->assertSame('John Doe', $person->getPerson()->getName());
-    }
-
-    public function testKeepAlreadySetValueFromUnion(): void
-    {
-        $data = [
-            'person' => new PersonWithAge('John Doe', 99),
-        ];
-
-        $person = $this->arrayToValueObjectHydrator->hydrateArray($data, UnionPerson::class);
-
-        $this->assertInstanceOf(UnionPerson::class, $person);
-        $this->assertInstanceOf(PersonWithAge::class, $person->getPerson());
-        $this->assertSame('John Doe', $person->getPerson()->getName());
-        $this->assertSame(99, $person->getPerson()->getAge());
+        self::assertEquals([$expected, $expected], $actual);
     }
 
     /**
-     * @param Arrays[] $arrayOfArrays
+     * @return Generator<mixed>
      */
-    private function assertArraysHasValidTypes(array $arrayOfArrays): void
+    public function hydrateArrayCases(): Generator
     {
-        foreach ($arrayOfArrays as $arrays) {
-            $integers = $arrays->getIntegers();
-            foreach ($integers as $integer) {
-                $this->assertIsInt($integer);
-            }
+        yield 'object' => [
+            ['value' => 'test'],
+            TestA::class,
+            new TestA('test'),
+        ];
 
-            $floats = $arrays->getFloats();
-            foreach ($floats as $float) {
-                $this->assertIsFloat($float);
-            }
+        yield 'nested' => [
+            [
+                'valueA' => new TestA('test'),
+                'valueB' => new TestB(100),
+            ],
+            TestAB::class,
+            new TestAB(
+                valueA: new TestA('test'),
+                valueB: new TestB(100),
+            ),
+        ];
 
-            $strings = $arrays->getStrings();
-            foreach ($strings as $string) {
-                $this->assertIsString($string);
+        $stringable = new class() {
+            public function __toString(): string
+            {
+                return 'test';
             }
+        };
 
-            $booleans = $arrays->getBooleans();
-            foreach ($booleans as $bool) {
-                $this->assertIsBool($bool);
-            }
+        yield 'strings' => [
+            ['strings' => [$stringable, 'test', 111, 111.111, true, false]],
+            TestScalars::class,
+            // Bool converted to 1/0
+            new TestScalars(strings: ['test', 'test', '111', '111.111', '1', '0']),
+        ];
 
-            $intArrays = $arrays->getArrayOfArrays();
-            $this->assertArrayOfArraysHasValidTypes($intArrays);
-        }
+        yield 'integers' => [
+            ['integers' => ['111', 111, 111.000, true, false]],
+            TestScalars::class,
+            new TestScalars(integers: [111, 111, 111, 1, 0]),
+        ];
+
+        yield 'floats' => [
+            ['floats' => ['111.111', '111.000', 111, 111.111, 111.000, true, false]],
+            TestScalars::class,
+            // Integer passed as is
+            new TestScalars(floats: [111.111, 111.0, 111, 111.111, 111.0, 1.0, 0.0]),
+        ];
+
+        yield 'booleans' => [
+            ['booleans' => ['111', '111.111', '0', '0.0', 111, 111.111, 0, 0.0, true, false]],
+            TestScalars::class,
+            new TestScalars(booleans: [true, true, false, false, true, true, false, false, true, false]),
+        ];
+
+        yield 'union' => [
+            ['value' => ['value' => 'test']],
+            TestUnion::class,
+            new TestUnion(new TestA('test')),
+        ];
+
+        yield 'union keep already set value' => [
+            ['value' => new TestB(100)],
+            TestUnion::class,
+            new TestUnion(new TestB(100)),
+        ];
+
+        yield 'datetime' => [
+            [
+                'value1' => '2020-02-02',
+                'value2' => '2020-02-02',
+                'value3' => '2020-02-02',
+            ],
+            TestDateTime::class,
+            new TestDateTime(
+                DateTime::createFromFormat(DATE_RFC3339_EXTENDED, '2020-02-02T00:00:00.000+0000'),
+                DateTime::createFromFormat(DATE_RFC3339_EXTENDED, '2020-02-02T00:00:00.000+0000'),
+                DateTimeImmutable::createFromFormat(DATE_RFC3339_EXTENDED, '2020-02-02T00:00:00.000+0000'),
+            ),
+        ];
+
+        yield 'arrays' => [
+            [
+                'values' => [
+                    ['value' => 'test1'],
+                    ['value' => 'test2'],
+                ],
+                'indexedValues' => [
+                    'test_index_1' => ['value' => 'test3'],
+                    'test_index_2' => ['value' => 'test4'],
+                ],
+                'nestedValues' => [
+                    [[['value' => 'test5']]],
+                    [[['value' => 'test6']]],
+                ],
+            ],
+            TestArray::class,
+            new TestArray(
+                values: [
+                    new TestA('test1'),
+                    new TestA('test2'),
+                ],
+                indexedValues: [
+                    'test_index_1' => new TestA('test3'),
+                    'test_index_2' => new TestA('test4'),
+                ],
+                nestedValues: [
+                    [[new TestA('test5')]],
+                    [[new TestA('test6')]],
+                ],
+            ),
+        ];
+
+        yield 'defaults' => [
+            [],
+            TestDefaults::class,
+            new TestDefaults(
+                value1: 'test',
+                value2: 100,
+                value3: 111.111,
+                value4: true,
+                value5: null,
+                value6: null,
+            ),
+        ];
+
+        yield 'defaults override' => [
+            [
+                'value1' => 'test2',
+                'value2' => 200,
+                'value3' => 222.222,
+                'value4' => false,
+                'value5' => 'test3',
+                'value6' => 'test4',
+            ],
+            TestDefaults::class,
+            new TestDefaults(
+                value1: 'test2',
+                value2: 200,
+                value3: 222.222,
+                value4: false,
+                value5: 'test3',
+                value6: 'test4',
+            ),
+        ];
     }
 
     /**
-     * @param int[][][] $intArrays
+     * @dataProvider validationCases
+     * @param array<mixed> $data
+     * @param class-string $className
      */
-    private function assertArrayOfArraysHasValidTypes(array $intArrays): void
+    public function testHydrateArrayValidation(array $data, string $className, Exception $expectedException): void
     {
-        foreach ($intArrays as $row) {
-            $this->assertIsArray($row);
-            foreach ($row as $cell) {
-                $this->assertIsArray($cell);
-                foreach ($cell as $integer) {
-                    $this->assertIsInt($integer);
-                }
-            }
-        }
+        self::expectExceptionObject($expectedException);
+
+        /** @var ArrayToValueObjectHydrator $arrayToValueObjectHydrator */
+        $arrayToValueObjectHydrator = self::getContainer()->get(ArrayToValueObjectHydrator::class);
+
+        $arrayToValueObjectHydrator->hydrateArray($data, $className);
+    }
+
+    /**
+     * @dataProvider validationCases
+     * @param array<mixed> $data
+     * @param class-string $className
+     */
+    public function testHydrateArraysValidation(array $data, string $className, Exception $expectedException): void
+    {
+        self::expectExceptionObject($expectedException);
+
+        /** @var ArrayToValueObjectHydrator $arrayToValueObjectHydrator */
+        $arrayToValueObjectHydrator = self::getContainer()->get(ArrayToValueObjectHydrator::class);
+
+        $arrayToValueObjectHydrator->hydrateArrays([$data], $className);
+    }
+
+    /**
+     * @return Generator<mixed>
+     */
+    public function validationCases(): Generator
+    {
+        yield [[], TestA::class, new MissingDataException('Missing data of "$value" parameter for hydrated class "Symplify\EasyHydrator\Tests\Fixture\TestA" __construct method.')];
+        yield [[], TestNoConstructor::class, new MissingConstructorException('Hydrated class "Symplify\EasyHydrator\Tests\Fixture\TestNoConstructor" is missing constructor.')];
     }
 }
