@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Tests\TypeCaster;
+namespace EAG\EasyHydrator\Tests\TypeCaster;
 
 use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
+use EAG\EasyHydrator\Tests\Fixture\TestA;
+use EAG\EasyHydrator\Tests\Fixture\TestAB;
+use EAG\EasyHydrator\Tests\Fixture\TestB;
+use EAG\EasyHydrator\TypeCaster\ObjectTypeCaster;
+use EAG\EasyHydrator\TypeDefinition;
 use Exception;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\Tests\Fixture\TestA;
-use Symplify\EasyHydrator\Tests\Fixture\TestAB;
-use Symplify\EasyHydrator\Tests\Fixture\TestB;
-use Symplify\EasyHydrator\TypeCaster\ObjectTypeCaster;
-use Symplify\EasyHydrator\TypeDefinition;
 
 final class ObjectTypeCasterTest extends TestCase
 {

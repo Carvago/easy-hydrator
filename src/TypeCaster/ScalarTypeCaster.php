@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\TypeCaster;
+namespace EAG\EasyHydrator\TypeCaster;
 
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
+use EAG\EasyHydrator\TypeDefinition;
 use LogicException;
 use RuntimeException;
 use Stringable;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\TypeDefinition;
 
 final class ScalarTypeCaster implements TypeCasterInterface
 {

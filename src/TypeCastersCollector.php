@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator;
+namespace EAG\EasyHydrator;
 
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
 use RuntimeException;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
 
 class TypeCastersCollector implements TypeCasterInterface
 {

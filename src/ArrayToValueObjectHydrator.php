@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator;
+namespace EAG\EasyHydrator;
 
 final class ArrayToValueObjectHydrator
 {

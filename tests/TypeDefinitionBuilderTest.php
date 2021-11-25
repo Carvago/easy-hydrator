@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Tests;
+namespace EAG\EasyHydrator\Tests;
 
 use DateTimeInterface;
+use EAG\EasyHydrator\Tests\Fixture\TestA;
+use EAG\EasyHydrator\TypeDefinition;
+use EAG\EasyHydrator\TypeDefinitionBuilder;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
-use Symplify\EasyHydrator\Tests\Fixture\TestA;
-use Symplify\EasyHydrator\TypeDefinition;
-use Symplify\EasyHydrator\TypeDefinitionBuilder;
 
 final class TypeDefinitionBuilderTest extends TestCase
 {
@@ -72,7 +72,7 @@ final class TypeDefinitionBuilderTest extends TestCase
         yield 'typehint class' => [
             /**
              * @param TestA $value2
-             * @param \Symplify\EasyHydrator\Tests\Fixture\TestA $value3
+             * @param \EAG\EasyHydrator\Tests\Fixture\TestA $value3
              *
              */
             fn(TestA $value1, $value2, $value3) => null,
@@ -81,7 +81,7 @@ final class TypeDefinitionBuilderTest extends TestCase
 
         $anonymousClass = new class(null) {
             /**
-             * @param \Symplify\EasyHydrator\Tests\Fixture\TestA $value
+             * @param \EAG\EasyHydrator\Tests\Fixture\TestA $value
              */
             public function __construct($value)
             {

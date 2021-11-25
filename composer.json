@@ -1,6 +1,6 @@
 {
-    "name": "symplify/easy-hydrator",
-    "description": "Hydrate arrays to objects easily with PHP 7.4 and constructor injection",
+    "name": "eag/easy-hydrator",
+    "description": "Hydrate arrays to objects easily with PHP 8.0 and constructor injection",
     "license": "MIT",
     "type": "symfony-bundle",
     "require": {
@@ -18,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Symplify\\EasyHydrator\\": "src"
+            "EAG\\EasyHydrator\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Symplify\\EasyHydrator\\Tests\\": "tests"
+            "EAG\\EasyHydrator\\Tests\\": "tests"
         }
     },
     "minimum-stability": "dev",

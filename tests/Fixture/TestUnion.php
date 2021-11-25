@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Tests\Fixture;
+namespace EAG\EasyHydrator\Tests\Fixture;
 
 final class TestUnion
 {

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator;
+namespace EAG\EasyHydrator;
 
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
+use EAG\EasyHydrator\DependencyInjection\Extension\EasyHydratorExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\DependencyInjection\Extension\EasyHydratorExtension;
 
 final class EasyHydratorBundle extends Bundle
 {

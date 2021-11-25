@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
+use EAG\EasyHydrator\ArrayToValueObjectHydrator;
+use EAG\EasyHydrator\EasyHydratorBundle;
+use EAG\EasyHydrator\TypeCaster\ArrayTypeCaster;
+use EAG\EasyHydrator\TypeCaster\DateTimeTypeCaster;
+use EAG\EasyHydrator\TypeCaster\ObjectTypeCaster;
+use EAG\EasyHydrator\TypeCaster\ScalarTypeCaster;
+use EAG\EasyHydrator\TypeCastersCollector;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
-use Symplify\EasyHydrator\EasyHydratorBundle;
-use Symplify\EasyHydrator\TypeCaster\ArrayTypeCaster;
-use Symplify\EasyHydrator\TypeCaster\DateTimeTypeCaster;
-use Symplify\EasyHydrator\TypeCaster\ObjectTypeCaster;
-use Symplify\EasyHydrator\TypeCaster\ScalarTypeCaster;
-use Symplify\EasyHydrator\TypeCastersCollector;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
 return static function (ContainerConfigurator $containerConfigurator): void {

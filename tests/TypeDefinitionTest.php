@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Tests;
+namespace EAG\EasyHydrator\Tests;
 
+use EAG\EasyHydrator\Tests\Fixture\TestA;
+use EAG\EasyHydrator\Tests\Fixture\TestAExtended;
+use EAG\EasyHydrator\Tests\Fixture\TestInterface;
+use EAG\EasyHydrator\TypeDefinition;
 use Exception;
 use Generator;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Symplify\EasyHydrator\Tests\Fixture\TestA;
-use Symplify\EasyHydrator\Tests\Fixture\TestAExtended;
-use Symplify\EasyHydrator\Tests\Fixture\TestInterface;
-use Symplify\EasyHydrator\TypeDefinition;
 
 final class TypeDefinitionTest extends TestCase
 {
@@ -207,8 +207,8 @@ final class TypeDefinitionTest extends TestCase
 
         yield [new TypeDefinition(['string', 'null']), 'string|null'];
 
-        yield [new TypeDefinition([TestA::class]), 'Symplify\EasyHydrator\Tests\Fixture\TestA'];
-        yield [new TypeDefinition([TestA::class, 'null']), 'Symplify\EasyHydrator\Tests\Fixture\TestA|null'];
+        yield [new TypeDefinition([TestA::class]), 'EAG\EasyHydrator\Tests\Fixture\TestA'];
+        yield [new TypeDefinition([TestA::class, 'null']), 'EAG\EasyHydrator\Tests\Fixture\TestA|null'];
 
         yield [new TypeDefinition(['array'], new TypeDefinition(['string'])), 'array<string>'];
         yield [new TypeDefinition(['array'], new TypeDefinition(['array'], new TypeDefinition(['string']))), 'array<array<string>>'];

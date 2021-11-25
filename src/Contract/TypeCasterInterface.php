@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Contract;
+namespace EAG\EasyHydrator\Contract;
 
-use Symplify\EasyHydrator\TypeDefinition;
+use EAG\EasyHydrator\TypeDefinition;
 
 interface TypeCasterInterface
 {

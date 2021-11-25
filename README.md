@@ -1,9 +1,7 @@
 # Hydrate Arrays to Objects
 
-[![Downloads total](https://img.shields.io/packagist/dt/symplify/easy-hydrator.svg?style=flat-square)](https://packagist.org/packages/symplify/easy-hydrator/stats)
-
 - **easy!**
-- PHP 7.4 support
+- PHP 8.0 support
 - constructor injection support
 - auto-resolving of `DateTimeInterface` string value
 - auto-retype based on param type declarations
@@ -14,17 +12,14 @@
 ## Install
 
 ```bash
-composer require symplify/easy-hydrator
+composer require eag/easy-hydrator
 ```
 
 Add to `config/bundles.php`:
 
 ```php
 return [
-    Symplify\EasyHydrator\EasyHydratorBundle::class => [
-        'all' => true,
-    ],
-    Symplify\SimplePhpDocParser\Bundle\SimplePhpDocParserBundle::class => [
+    EAG\EasyHydrator\EasyHydratorBundle::class => [
         'all' => true,
     ],
 ];
@@ -77,7 +72,7 @@ Use hydrator with array like this:
 namespace App\Repository;
 
 use App\ValueObject\Person;
-use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
+use EAG\EasyHydrator\ArrayToValueObjectHydrator;
 
 final class HumanRepository
 {
@@ -186,7 +181,7 @@ $object->getBar();
 
 ### Missing constructor data
 
-When not provided data for required constructor parameter, `Symplify\EasyHydrator\Exception\MissingDataException` is thrown.
+When not provided data for required constructor parameter, `EAG\EasyHydrator\Exception\MissingDataException` is thrown.
 
 <br>
 

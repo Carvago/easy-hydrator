@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\TypeCaster;
+namespace EAG\EasyHydrator\TypeCaster;
 
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
+use EAG\EasyHydrator\TypeDefinition;
 use RuntimeException;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\TypeDefinition;
 
 final class ArrayTypeCaster implements TypeCasterInterface
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Exception;
+namespace EAG\EasyHydrator\Exception;
 
 use InvalidArgumentException;
 

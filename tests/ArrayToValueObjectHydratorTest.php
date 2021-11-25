@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Tests;
+namespace EAG\EasyHydrator\Tests;
 
 use DateTime;
 use DateTimeImmutable;
+use EAG\EasyHydrator\ArrayToValueObjectHydrator;
+use EAG\EasyHydrator\Exception\MissingConstructorException;
+use EAG\EasyHydrator\Exception\MissingDataException;
+use EAG\EasyHydrator\Tests\Fixture\TestA;
+use EAG\EasyHydrator\Tests\Fixture\TestAB;
+use EAG\EasyHydrator\Tests\Fixture\TestArray;
+use EAG\EasyHydrator\Tests\Fixture\TestB;
+use EAG\EasyHydrator\Tests\Fixture\TestDateTime;
+use EAG\EasyHydrator\Tests\Fixture\TestDefaults;
+use EAG\EasyHydrator\Tests\Fixture\TestNoConstructor;
+use EAG\EasyHydrator\Tests\Fixture\TestScalars;
+use EAG\EasyHydrator\Tests\Fixture\TestUnion;
 use Exception;
 use Generator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
-use Symplify\EasyHydrator\Exception\MissingConstructorException;
-use Symplify\EasyHydrator\Exception\MissingDataException;
-use Symplify\EasyHydrator\Tests\Fixture\TestA;
-use Symplify\EasyHydrator\Tests\Fixture\TestAB;
-use Symplify\EasyHydrator\Tests\Fixture\TestArray;
-use Symplify\EasyHydrator\Tests\Fixture\TestB;
-use Symplify\EasyHydrator\Tests\Fixture\TestDateTime;
-use Symplify\EasyHydrator\Tests\Fixture\TestDefaults;
-use Symplify\EasyHydrator\Tests\Fixture\TestScalars;
-use Symplify\EasyHydrator\Tests\Fixture\TestNoConstructor;
-use Symplify\EasyHydrator\Tests\Fixture\TestUnion;
 
 final class ArrayToValueObjectHydratorTest extends KernelTestCase
 {
@@ -231,7 +231,7 @@ final class ArrayToValueObjectHydratorTest extends KernelTestCase
      */
     public function validationCases(): Generator
     {
-        yield [[], TestA::class, new MissingDataException('Missing data of "$value" parameter for hydrated class "Symplify\EasyHydrator\Tests\Fixture\TestA" __construct method.')];
-        yield [[], TestNoConstructor::class, new MissingConstructorException('Hydrated class "Symplify\EasyHydrator\Tests\Fixture\TestNoConstructor" is missing constructor.')];
+        yield [[], TestA::class, new MissingDataException('Missing data of "$value" parameter for hydrated class "EAG\EasyHydrator\Tests\Fixture\TestA" __construct method.')];
+        yield [[], TestNoConstructor::class, new MissingConstructorException('Hydrated class "EAG\EasyHydrator\Tests\Fixture\TestNoConstructor" is missing constructor.')];
     }
 }

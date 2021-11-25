@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\Tests;
+namespace EAG\EasyHydrator\Tests;
 
+use EAG\EasyHydrator\ArrayToValueObjectHydrator;
+use EAG\EasyHydrator\EasyHydratorBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
-use Symplify\EasyHydrator\ArrayToValueObjectHydrator;
-use Symplify\EasyHydrator\EasyHydratorBundle;
 
 class TestKernel extends Kernel implements CompilerPassInterface
 {

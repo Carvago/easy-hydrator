@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\TypeCaster;
+namespace EAG\EasyHydrator\TypeCaster;
 
 use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
+use EAG\EasyHydrator\TypeDefinition;
 use Nette\Utils\DateTime as NetteDateTime;
 use RuntimeException;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\TypeDefinition;
 
 final class DateTimeTypeCaster implements TypeCasterInterface
 {

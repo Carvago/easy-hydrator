@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Symplify\EasyHydrator\TypeCaster;
+namespace EAG\EasyHydrator\TypeCaster;
 
+use EAG\EasyHydrator\Contract\TypeCasterInterface;
+use EAG\EasyHydrator\Exception\MissingConstructorException;
+use EAG\EasyHydrator\Exception\MissingDataException;
+use EAG\EasyHydrator\TypeDefinition;
+use EAG\EasyHydrator\TypeDefinitionBuilder;
 use ReflectionClass;
 use ReflectionParameter;
 use RuntimeException;
-use Symplify\EasyHydrator\Contract\TypeCasterInterface;
-use Symplify\EasyHydrator\Exception\MissingConstructorException;
-use Symplify\EasyHydrator\Exception\MissingDataException;
-use Symplify\EasyHydrator\TypeDefinition;
-use Symplify\EasyHydrator\TypeDefinitionBuilder;
 use function Symfony\Component\String\b;
 
 final class ObjectTypeCaster implements TypeCasterInterface
