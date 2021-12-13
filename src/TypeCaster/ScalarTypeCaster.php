@@ -41,7 +41,7 @@ final class ScalarTypeCaster implements TypeCasterInterface
             if (!is_scalar($value)) {
                 throw new UnexpectedValueException('Expected scalar for int conversion, given: ' . gettype($value));
             }
-            if (is_string($value) && 1 !== preg_match('/^\d+$/', $value)) {
+            if (is_string($value) && 1 !== preg_match('/^-?\d+$/', $value)) {
                 throw new UnexpectedValueException('Expected string only with numbers for int conversion, given value: ' . $value);
             }
             if (is_float($value) && floor($value) !== $value) {

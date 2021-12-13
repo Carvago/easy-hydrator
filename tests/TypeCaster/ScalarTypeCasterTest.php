@@ -88,6 +88,8 @@ final class ScalarTypeCasterTest extends TestCase
         yield ['111', new TypeDefinition(['int']), 111];
         yield [111, new TypeDefinition(['int']), 111];
         yield [111.000, new TypeDefinition(['int']), 111];
+        yield [-111, new TypeDefinition(['int']), -111];
+        yield ['-111', new TypeDefinition(['int']), -111];
         yield [true, new TypeDefinition(['int']), 1];
         yield [false, new TypeDefinition(['int']), 0];
 
@@ -96,6 +98,8 @@ final class ScalarTypeCasterTest extends TestCase
         yield [111, new TypeDefinition(['float']), 111]; // Pass by integers
         yield [111.111, new TypeDefinition(['float']), 111.111];
         yield [111.000, new TypeDefinition(['float']), 111.0];
+        yield [-111.000, new TypeDefinition(['float']), -111.0];
+        yield ['-111.000', new TypeDefinition(['float']), -111.0];
         yield [true, new TypeDefinition(['float']), 1.0];
         yield [false, new TypeDefinition(['float']), 0.0];
 
