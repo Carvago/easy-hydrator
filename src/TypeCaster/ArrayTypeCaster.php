@@ -35,6 +35,6 @@ final class ArrayTypeCaster implements TypeCasterInterface
 
     public function getPriority(): int
     {
-        return 0;
+        return 3; // before ObjectTypeCaster
     }
 }

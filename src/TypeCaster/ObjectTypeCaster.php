@@ -58,7 +58,7 @@ final class ObjectTypeCaster implements TypeCasterInterface
 
     public function getPriority(): int
     {
-        return 5;
+        return 2;
     }
 
     /**

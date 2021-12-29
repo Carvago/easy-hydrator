@@ -9,6 +9,7 @@ use DateTimeImmutable;
 use EAG\EasyHydrator\ArrayToValueObjectHydrator;
 use EAG\EasyHydrator\Exception\MissingConstructorException;
 use EAG\EasyHydrator\Exception\MissingDataException;
+use EAG\EasyHydrator\Tests\Fixture\NotSet;
 use EAG\EasyHydrator\Tests\Fixture\TestA;
 use EAG\EasyHydrator\Tests\Fixture\TestAB;
 use EAG\EasyHydrator\Tests\Fixture\TestArray;
@@ -16,6 +17,7 @@ use EAG\EasyHydrator\Tests\Fixture\TestB;
 use EAG\EasyHydrator\Tests\Fixture\TestDateTime;
 use EAG\EasyHydrator\Tests\Fixture\TestDefaults;
 use EAG\EasyHydrator\Tests\Fixture\TestNoConstructor;
+use EAG\EasyHydrator\Tests\Fixture\TestNotSet;
 use EAG\EasyHydrator\Tests\Fixture\TestScalars;
 use EAG\EasyHydrator\Tests\Fixture\TestUnion;
 use Exception;
@@ -192,6 +194,38 @@ final class ArrayToValueObjectHydratorTest extends KernelTestCase
                 value4: false,
                 value5: 'test3',
                 value6: 'test4',
+            ),
+        ];
+
+        yield 'union with default object value' => [
+            [
+                'string' => 'A',
+                'object' => [
+                    'value' => 'B',
+                ],
+                'arrayOfStrings' => ['C'],
+                'arrayOfObjects' => [[
+                    'value' => 'D',
+                ]],
+            ],
+            TestNotSet::class,
+            new TestNotSet(
+                string: 'A',
+                object: new TestA('B'),
+                arrayOfStrings: ['C'],
+                arrayOfObjects: [new TestA('D')],
+            ),
+        ];
+
+        yield 'union with only default values' => [
+            [
+            ],
+            TestNotSet::class,
+            new TestNotSet(
+                string: new NotSet(),
+                object: new NotSet(),
+                arrayOfStrings: new NotSet(),
+                arrayOfObjects: new NotSet(),
             ),
         ];
     }
