@@ -29,7 +29,7 @@ final class ArrayTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function isSupportedCases(): Generator
+    public static function isSupportedCases(): Generator
     {
         yield [new TypeDefinition(['string']), false];
         yield [new TypeDefinition(['int']), false];
@@ -69,7 +69,7 @@ final class ArrayTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeCases(): Generator
+    public static function retypeCases(): Generator
     {
         $typeDefinition = new TypeDefinition(['array'], new TypeDefinition(['string']));
 
@@ -93,7 +93,7 @@ final class ArrayTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeBypassCases(): Generator
+    public static function retypeBypassCases(): Generator
     {
         yield [[], new TypeDefinition(['array', 'null'], new TypeDefinition(['string']))];
         yield [null, new TypeDefinition(['array', 'null'], new TypeDefinition(['string']))];
@@ -114,7 +114,7 @@ final class ArrayTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeValidationCases(): Generator
+    public static function retypeValidationCases(): Generator
     {
         yield [null, new TypeDefinition(['array'], new TypeDefinition(['string'])), new RuntimeException('Expected array, given: NULL')];
     }

@@ -31,7 +31,7 @@ final class ObjectTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function isSupportedCases(): Generator
+    public static function isSupportedCases(): Generator
     {
         yield [new TypeDefinition(['string']), false];
         yield [new TypeDefinition(['int']), false];
@@ -53,55 +53,41 @@ final class ObjectTypeCasterTest extends TestCase
         yield [new TypeDefinition(['object']), false];
     }
 
-    /**
-     * @dataProvider retypeCases
-     */
-    public function testRetype(mixed $value, TypeDefinition $typeDefinition, object $expected, TypeCasterInterface $rootTypeCaster): void
-    {
-        self::assertEquals($expected, (new ObjectTypeCaster())->retype($value, $typeDefinition, $rootTypeCaster));
-    }
-
-    /**
-     * @return Generator<mixed>
-     */
-    public function retypeCases(): Generator
+    public function testRetypeA(): void
     {
         $rootTypeCaster = $this->createMock(TypeCasterInterface::class);
         $rootTypeCaster
             ->expects($this->exactly(1))
             ->method('retype')
-            ->withConsecutive(['test'])
+            ->with('test')
             ->willReturnOnConsecutiveCalls('test');
 
-        yield [
-            ['value' => 'test'],
-            new TypeDefinition([TestA::class]),
-            new TestA('test'),
-            $rootTypeCaster,
-        ];
+        $value = ['value' => 'test'];
+        $typeDefinition = new TypeDefinition([TestA::class]);
+        $expected = new TestA('test');
 
+        self::assertEquals($expected, (new ObjectTypeCaster())->retype($value, $typeDefinition, $rootTypeCaster));
+    }
+
+    public function testRetypeB(): void
+    {
         $rootTypeCaster = $this->createMock(TypeCasterInterface::class);
         $rootTypeCaster
             ->expects($this->exactly(2))
             ->method('retype')
-            ->withConsecutive(
-                [['value' => 'test']],
-                [['value' => 100]],
-            )
             ->willReturnOnConsecutiveCalls(
                 new TestA('test'),
                 new TestB(100),
             );
 
-        yield [
-            [
-                'valueA' => ['value' => 'test'],
-                'valueB' => ['value' => 100],
-            ],
-            new TypeDefinition([TestAB::class]),
-            new TestAB(new TestA('test'), new TestB(100)),
-            $rootTypeCaster,
+        $value = [
+            'valueA' => ['value' => 'test'],
+            'valueB' => ['value' => 100],
         ];
+        $typeDefinition = new TypeDefinition([TestAB::class]);
+        $expected = new TestAB(new TestA('test'), new TestB(100));
+
+        self::assertEquals($expected, (new ObjectTypeCaster())->retype($value, $typeDefinition, $rootTypeCaster));
     }
 
     /**
@@ -119,7 +105,7 @@ final class ObjectTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeBypassCases(): Generator
+    public static function retypeBypassCases(): Generator
     {
         yield [new TestA('test'), new TypeDefinition([TestA::class, 'null'])];
         yield [null, new TypeDefinition([TestA::class, 'null'])];
@@ -140,7 +126,7 @@ final class ObjectTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeValidationCases(): Generator
+    public static function retypeValidationCases(): Generator
     {
         yield [null, new TypeDefinition([DateTimeInterface::class]), new RuntimeException('Expected array, given: NULL')];
     }

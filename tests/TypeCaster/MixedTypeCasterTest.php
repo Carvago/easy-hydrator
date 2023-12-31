@@ -28,7 +28,7 @@ final class MixedTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function isSupportedCases(): Generator
+    public static function isSupportedCases(): Generator
     {
         yield [new TypeDefinition(['string']), false];
         yield [new TypeDefinition(['int']), false];
@@ -68,7 +68,7 @@ final class MixedTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeCases(): Generator
+    public static function retypeCases(): Generator
     {
         yield [new stdClass(), new TypeDefinition(['mixed'])];
         yield ['test', new TypeDefinition(['mixed'])];

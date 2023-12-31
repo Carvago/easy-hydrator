@@ -29,7 +29,7 @@ final class ScalarTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function isSupportedCases(): Generator
+    public static function isSupportedCases(): Generator
     {
         yield [new TypeDefinition(['string']), true];
         yield [new TypeDefinition(['int']), true];
@@ -69,7 +69,7 @@ final class ScalarTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeCases(): Generator
+    public static function retypeCases(): Generator
     {
         $stringable = new class() {
             public function __toString(): string
@@ -130,7 +130,7 @@ final class ScalarTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeBypassCases(): Generator
+    public static function retypeBypassCases(): Generator
     {
         yield ['test', new TypeDefinition(['string', 'null'])];
         yield [null, new TypeDefinition(['string', 'null'])];
@@ -161,7 +161,7 @@ final class ScalarTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeValidationCases(): Generator
+    public static function retypeValidationCases(): Generator
     {
         $stringTypeDefinition = new TypeDefinition(['string']);
 

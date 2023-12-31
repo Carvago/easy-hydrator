@@ -29,7 +29,7 @@ final class DateTimeTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function isSupportedCases(): Generator
+    public static function isSupportedCases(): Generator
     {
         yield [new TypeDefinition(['string']), false];
         yield [new TypeDefinition(['int']), false];
@@ -72,7 +72,7 @@ final class DateTimeTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeCases(): Generator
+    public static function retypeCases(): Generator
     {
         $typeDefinition = new TypeDefinition([DateTimeInterface::class]);
 
@@ -115,7 +115,7 @@ final class DateTimeTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeBypassCases(): Generator
+    public static function retypeBypassCases(): Generator
     {
         yield [new DateTime(), new TypeDefinition([DateTimeInterface::class, 'null'])];
         yield [null, new TypeDefinition([DateTimeInterface::class, 'null'])];
@@ -136,7 +136,7 @@ final class DateTimeTypeCasterTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function retypeValidationCases(): Generator
+    public static function retypeValidationCases(): Generator
     {
         yield [null, new TypeDefinition([DateTimeInterface::class]), new RuntimeException('Expected string, given: NULL')];
     }

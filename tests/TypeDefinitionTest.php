@@ -27,7 +27,7 @@ final class TypeDefinitionTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function supportsCases(): Generator
+    public static function supportsCases(): Generator
     {
         yield [new TypeDefinition(['string']), 'string', true];
         yield [new TypeDefinition(['string']), 'mixed', false];
@@ -81,7 +81,7 @@ final class TypeDefinitionTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function supportsValueCases(): Generator
+    public static function supportsValueCases(): Generator
     {
         yield [new TypeDefinition(['array'], new TypeDefinition(['string'])), new TestA('test'), false];
         yield [new TypeDefinition(['array'], new TypeDefinition(['string'])), [], true];
@@ -178,7 +178,7 @@ final class TypeDefinitionTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function validationCases(): Generator
+    public static function validationCases(): Generator
     {
         yield [[], null, new InvalidArgumentException('List of types could not be empty')];
         yield [['null'], null, new InvalidArgumentException('List of types should contain at least on type along with null')];
@@ -198,7 +198,7 @@ final class TypeDefinitionTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function toStringCases(): Generator
+    public static function toStringCases(): Generator
     {
         yield [new TypeDefinition(['string']), 'string'];
         yield [new TypeDefinition(['int']), 'int'];

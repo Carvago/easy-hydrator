@@ -53,7 +53,7 @@ final class ArrayToValueObjectHydratorTest extends KernelTestCase
     /**
      * @return Generator<mixed>
      */
-    public function hydrateArrayCases(): Generator
+    public static function hydrateArrayCases(): Generator
     {
         yield 'object' => [
             ['value' => 'test'],
@@ -263,7 +263,7 @@ final class ArrayToValueObjectHydratorTest extends KernelTestCase
     /**
      * @return Generator<mixed>
      */
-    public function validationCases(): Generator
+    public static function validationCases(): Generator
     {
         yield [[], TestA::class, new MissingDataException('Missing data of "$value" parameter for hydrated class "EAG\EasyHydrator\Tests\Fixture\TestA" __construct method.')];
         yield [[], TestNoConstructor::class, new MissingConstructorException('Hydrated class "EAG\EasyHydrator\Tests\Fixture\TestNoConstructor" is missing constructor.')];

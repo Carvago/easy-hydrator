@@ -45,7 +45,7 @@ final class TypeDefinitionBuilderTest extends TestCase
     /**
      * @return Generator<mixed>
      */
-    public function buildCases(): Generator
+    public static function buildCases(): Generator
     {
         yield 'string' => [
             fn(string $value) => null,
