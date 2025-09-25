@@ -15,6 +15,7 @@ use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\ParserConfig;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -146,8 +147,14 @@ final class TypeDefinitionBuilder
             return null;
         }
 
-        $phpDocParser = new PhpDocParser(new TypeParser(new ConstExprParser()), new ConstExprParser());
-        $lexer = new Lexer();
+        $config = new ParserConfig([]);
+        $constExprParser = new ConstExprParser($config);
+        $phpDocParser = new PhpDocParser(
+            $config,
+            new TypeParser($config, $constExprParser),
+            $constExprParser,
+        );
+        $lexer = new Lexer($config);
 
         $tokens = $lexer->tokenize($docComment);
         $tokenIterator = new TokenIterator($tokens);
